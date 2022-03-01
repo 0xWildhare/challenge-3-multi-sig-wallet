@@ -88,11 +88,11 @@ function App(props) {
 
   // const poolServerUrl = "https://backend.multisig.holdings:49832/"
   const poolServerUrl = "http://localhost:49832/"
-
+/*
   const gun = Gun({
     peers: ['http:localhost:8000/gun'] // Put the relay node that you want here
   })
-
+*/
   // 🔭 block explorer URL
   const blockExplorer = targetNetwork.blockExplorer;
 
@@ -380,7 +380,7 @@ function App(props) {
               yourLocalBalance={yourLocalBalance}
               price={price}
               tx={tx}
-              gun={gun}
+            //  gun={gun}
               writeContracts={writeContracts}
               readContracts={readContracts}
               //setRoute={setRoute}
@@ -397,7 +397,7 @@ function App(props) {
               yourLocalBalance={yourLocalBalance}
               price={price}
               tx={tx}
-              gun={gun}
+            //  gun={gun}
               writeContracts={writeContracts}
               readContracts={readContracts}
               blockExplorer={blockExplorer}

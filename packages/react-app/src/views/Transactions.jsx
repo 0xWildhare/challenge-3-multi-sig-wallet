@@ -22,7 +22,7 @@ export default function Transactions({
   yourLocalBalance,
   price,
   tx,
-  gun,
+  //gun,
   readContracts,
   writeContracts,
   blockExplorer,

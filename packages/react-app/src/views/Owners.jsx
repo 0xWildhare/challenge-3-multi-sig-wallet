@@ -22,7 +22,7 @@ export default function Owners({
   yourLocalBalance,
   price,
   tx,
-  gun,
+  //gun,
   readContracts,
   writeContracts,
   blockExplorer }) {
