@@ -67,7 +67,9 @@
       "**/hardhat-ts/**"
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "axios": "^0.26.1"
+  },
   "devDependencies": {
     "husky": "^7.0.2"
   }
