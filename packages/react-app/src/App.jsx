@@ -30,7 +30,7 @@ import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
-import { Home, Owners, ExampleUI, Hints, Subgraph } from "./views";
+import { Home, Owners, Transactions, CreateTransaction, Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
 
 const { ethers } = require("ethers");
@@ -70,6 +70,9 @@ const providers = [
   `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_KEY}`,
   "https://rpc.scaffoldeth.io:48544",
 ];
+
+// const poolServerUrl = "https://backend.multisig.holdings:49832/"
+const poolServerUrl = "http://localhost:49832/";
 
 function App(props) {
   // specify all the chains your app is available on. Eg: ['localhost', 'mainnet', ...otherNetworks ]
@@ -119,7 +122,7 @@ function App(props) {
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
   const userSigner = userProviderAndSigner.signer;
-  console.log("USER PROVIDER AND SIGNER: ", userProviderAndSigner);
+  const userProvider = userProviderAndSigner.provider;
 
   useEffect(() => {
     async function getAddress() {
@@ -289,11 +292,11 @@ function App(props) {
         <Menu.Item key="/owners">
           <Link to="/owners">Owners</Link>
         </Menu.Item>
-        <Menu.Item key="/hints">
-          <Link to="/hints">Hints</Link>
+        <Menu.Item key="/create">
+          <Link to="/create">Create</Link>
         </Menu.Item>
-        <Menu.Item key="/exampleui">
-          <Link to="/exampleui">ExampleUI</Link>
+        <Menu.Item key="/pool">
+          <Link to="/pool">Pool</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug</Link>
@@ -333,16 +336,23 @@ function App(props) {
             contractConfig={contractConfig}
           />
         </Route>
-        <Route path="/hints">
-          <Hints
+        <Route path="/create">
+          <CreateTransaction
             address={address}
             yourLocalBalance={yourLocalBalance}
             mainnetProvider={mainnetProvider}
             price={price}
+            poolServerUrl={poolServerUrl}
+            contractName={contractName}
+            userProvider={userProvider}
+            localProvider={localProvider}
+            tx={tx}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
           />
         </Route>
-        <Route path="/exampleui">
-          <ExampleUI
+        <Route path="/pool">
+          <Transactions
             address={address}
             userSigner={userSigner}
             mainnetProvider={mainnetProvider}
@@ -361,7 +371,7 @@ function App(props) {
             address={address}
             blockExplorer={blockExplorer}
             contractName={contractName}
-            userProvider={userProviderAndSigner.provider}
+            userProvider={userProvider}
             localProvider={localProvider}
             yourLocalBalance={yourLocalBalance}
             price={price}

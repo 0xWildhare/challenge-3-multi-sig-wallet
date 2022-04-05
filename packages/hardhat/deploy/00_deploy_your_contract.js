@@ -1,6 +1,6 @@
 // deploy/00_deploy_your_contract.js
 
-const { ethers } = require("hardhat");
+const { ethers } = require("ethers");
 
 const localChainId = "31337";
 
@@ -30,7 +30,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   });
 
   // Getting a previously deployed contract
-  const MultiSig = await ethers.getContract("MultiSig", deployer);
+  //const MultiSig = await ethers.getContract("MultiSig", deployer);
   /*  await YourContract.setPurpose("Hello");
 
     To take ownership of yourContract using the ownable library uncomment next line and add the

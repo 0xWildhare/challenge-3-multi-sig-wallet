@@ -16,7 +16,7 @@ export default function Owners({contractName, ownerEvents, signaturesRequired, a
   const [newOwner, setNewOwner] = useLocalStorage("newOwner");
   const [newSignaturesRequired, setNewSignaturesRequired] = useLocalStorage("newSignaturesRequired");
   const [data, setData] = useLocalStorage("data","0x");
-
+console.log("OWNEREVENTS: ", ownerEvents);
   return (
     <div>
       <h2 style={{marginTop:32}}>Signatures Required: {signaturesRequired?signaturesRequired.toNumber():<Spin></Spin>}</h2>
