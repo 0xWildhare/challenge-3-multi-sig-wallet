@@ -6,7 +6,7 @@ import { useLocalStorage } from "../hooks";
 
 const { Option } = Select;
 
-export default function Owners({contractName, ownerEvents, signaturesRequired, address, nonce, userProvider, mainnetProvider, localProvider, yourLocalBalance, price, tx, readContracts, writeContracts, blockExplorer }) {
+export default function Owners({contractName, ownerEvents, signaturesRequired, address, mainnetProvider, readContracts, blockExplorer }) {
 
   const history = useHistory();
 
@@ -16,7 +16,7 @@ export default function Owners({contractName, ownerEvents, signaturesRequired, a
   const [newOwner, setNewOwner] = useLocalStorage("newOwner");
   const [newSignaturesRequired, setNewSignaturesRequired] = useLocalStorage("newSignaturesRequired");
   const [data, setData] = useLocalStorage("data","0x");
-console.log("OWNEREVENTS: ", ownerEvents);
+
   return (
     <div>
       <h2 style={{marginTop:32}}>Signatures Required: {signaturesRequired?signaturesRequired.toNumber():<Spin></Spin>}</h2>
@@ -26,15 +26,15 @@ console.log("OWNEREVENTS: ", ownerEvents);
         dataSource={ownerEvents}
         renderItem={(item) => {
           return (
-            <List.Item key={"owner_"+item[0]}>
+            <List.Item key={"owner_"+item.args[0]}>
             <Address
-              address={item[0]}
+              address={item.args[0]}
               ensProvider={mainnetProvider}
               blockExplorer={blockExplorer}
               fontSize={32}
             />
             <div style={{padding:16}}>
-              {item[1]?"👍":"👎"}
+              {item.args[1]?"👍":"👎"}
             </div>
             </List.Item>
           )

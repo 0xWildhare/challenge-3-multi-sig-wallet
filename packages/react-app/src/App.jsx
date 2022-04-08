@@ -156,8 +156,6 @@ function App(props) {
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(localProvider, contractConfig);
-  console.log("LOCALPROVIDER:", localProvider);
-  console.log("CONTRACTCONFIG:", contractConfig);
 
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
   const writeContracts = useContractLoader(userSigner, contractConfig, localChainId);
@@ -190,10 +188,6 @@ function App(props) {
     console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
   });
 
-  // Then read your DAI balance like:
-  const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
-    "0x34aA3F359A9D614239015126635CE7732c18fDF3",
-  ]);
 
   // keep track of a variable from the contract in the local React state:
   //const purpose = useContractReader(readContracts, "YourContract", "purpose");
@@ -227,7 +221,6 @@ function App(props) {
       console.log("💵 yourMainnetBalance", yourMainnetBalance ? ethers.utils.formatEther(yourMainnetBalance) : "...");
       console.log("📝 readContracts", readContracts);
       console.log("🌍 DAI contract on mainnet:", mainnetContracts);
-      console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance);
       console.log("🔐 writeContracts", writeContracts);
     }
   }, [
@@ -240,8 +233,7 @@ function App(props) {
     writeContracts,
     mainnetContracts,
     localChainId,
-    myMainnetDAIBalance,
-  ]);
+    ]);
 
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
@@ -371,14 +363,7 @@ function App(props) {
             address={address}
             blockExplorer={blockExplorer}
             contractName={contractName}
-            userProvider={userProvider}
-            localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
-            price={price}
-            tx={tx}
-            writeContracts={writeContracts}
             readContracts={readContracts}
-            nonce={nonce}
             ownerEvents={ownerEvents}
             signaturesRequired={signaturesRequired}
           />
