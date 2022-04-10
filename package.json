@@ -69,8 +69,10 @@
     ]
   },
   "dependencies": {
+
     "cors": "^2.8.5",
     "gun": "^0.2020.1236"
+
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^4.5.0",
