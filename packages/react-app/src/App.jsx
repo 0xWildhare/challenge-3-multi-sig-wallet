@@ -122,7 +122,6 @@ function App(props) {
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
   const userSigner = userProviderAndSigner.signer;
-  const userProvider = userProviderAndSigner.provider;
 
   useEffect(() => {
     async function getAddress() {
@@ -331,30 +330,32 @@ function App(props) {
         <Route path="/create">
           <CreateTransaction
             address={address}
-            yourLocalBalance={yourLocalBalance}
             mainnetProvider={mainnetProvider}
             price={price}
             poolServerUrl={poolServerUrl}
             contractName={contractName}
-            userProvider={userProvider}
+            userSigner={userSigner}
             localProvider={localProvider}
             tx={tx}
-            writeContracts={writeContracts}
             readContracts={readContracts}
+            nonce={nonce}
           />
         </Route>
         <Route path="/pool">
           <Transactions
             address={address}
-            userSigner={userSigner}
             mainnetProvider={mainnetProvider}
             localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
             price={price}
             tx={tx}
             writeContracts={writeContracts}
             readContracts={readContracts}
-
+            poolServerUrl={poolServerUrl}
+            contractName={contractName}
+            signaturesRequired={signaturesRequired}
+            nonce={nonce}
+            userSigner={userSigner}
+            blockExplorer={blockExplorer}
           />
         </Route>
         <Route path="/owners">

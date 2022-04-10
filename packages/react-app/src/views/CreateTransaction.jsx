@@ -3,8 +3,8 @@ import { useHistory } from "react-router-dom";
 import { Button, Select, List, Input, Spin } from "antd";
 import { parseEther } from "@ethersproject/units";
 import { Address, AddressInput, Balance, EtherInput, Blockie } from "../components";
-import { useContractReader } from "eth-hooks";
 const { Option } = Select;
+const { ethers } = require("ethers");
 
 const axios = require("axios");
 
@@ -12,19 +12,17 @@ export default function CreateTransaction({
   poolServerUrl,
   contractName,
   address,
-  userProvider,
-  mainnetProvider,
+  userSigner,
   localProvider,
-  yourLocalBalance,
+  mainnetProvider,
   price,
   tx,
   readContracts,
-  writeContracts,
+  nonce
 }) {
   const history = useHistory();
 
-  // keep track of a variable from the contract in the local React state:
-  const nonce = useContractReader(readContracts, contractName, "nonce");
+
   const calldataInputRef = useRef("0x");
 
   console.log("🤗 nonce:", nonce);
@@ -154,7 +152,6 @@ export default function CreateTransaction({
           </div>
                   <div style={{margin:8,padding:8}}>
           <Select value={methodName} disabled={selectDisabled} style={{ width: "100%" }} onChange={ setMethodName }>
-            //<Option key="transferFunds">transferFunds()</Option>
             <Option disabled={true} key="addSigner">addSigner()</Option>
             <Option disabled={true} key="removeSigner">removeSigner()</Option>
           </Select>
@@ -205,7 +202,7 @@ export default function CreateTransaction({
               );
               console.log("newHash", newHash);
 
-              const signature = await userProvider.send("personal_sign", [newHash, address]);
+              const signature = await userSigner.signMessage(ethers.utils.arrayify(newHash));
               console.log("signature", signature);
 
               const recover = await readContracts[contractName].recover(newHash, signature);

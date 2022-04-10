@@ -16,10 +16,9 @@ export default function Transactions({
   signaturesRequired,
   address,
   nonce,
-  userProvider,
+  userSigner,
   mainnetProvider,
   localProvider,
-  yourLocalBalance,
   price,
   tx,
   readContracts,
@@ -27,11 +26,18 @@ export default function Transactions({
   blockExplorer,
 }) {
   const [transactions, setTransactions] = useState();
+
+  const contractAddress = readContracts[contractName] ? readContracts[contractName].address : '';
+console.log("LOCALPROVIDER: ", localProvider);
+
   usePoller(() => {
     const getTransactions = async () => {
       if (true) console.log("🛰 Requesting Transaction List");
+      console.log("POOLSERVER: ", poolServerUrl);
+      console.log("contractAddress: ", contractAddress);
+      console.log("READCONTRACTS: ", readContracts[contractName])
       const res = await axios.get(
-        poolServerUrl + readContracts[contractName].address + "_" + localProvider._network.chainId,
+        poolServerUrl + contractAddress + "_" + localProvider._network.chainId,
       );
       const newTransactions = [];
       for (const i in res.data) {
@@ -127,7 +133,7 @@ export default function Transactions({
                   );
                   console.log("newHash", newHash);
 
-                  const signature = await userProvider.send("personal_sign", [newHash, address]);
+                  const signature = await userSigner.signMessage(ethers.utils.arrayify(newHash));
                   console.log("signature", signature);
 
                   const recover = await readContracts[contractName].recover(newHash, signature);
