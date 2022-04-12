@@ -19,20 +19,24 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
 
   console.log("🔥🔥🔥🔥", item)
   let txnData;
-  try {
-    txnData = readContracts[contractName].interface.parseTransaction(item);
-  } catch (error){
-    console.log("ERROR", error)
+
+  if(item.data != "0x") {
+    try {
+      txnData = readContracts[contractName].interface.parseTransaction(item);
+    } catch (error){
+      console.log("ERROR", error)
+    }
   }
   return <>
     <TransactionDetailsModal
       visible={isModalVisible}
       txnInfo={txnData}
+      item={item}
       handleOk={handleOk}
       mainnetProvider={mainnetProvider}
       price={price}
     />
-    {txnData && <List.Item key={item.hash} style={{ position: "relative" }}>
+    {<List.Item key={item.hash} style={{ position: "relative" }}>
       <div
         style={{
           position: "absolute",
@@ -47,11 +51,11 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
       >
         <p>
           <b>Event Name :&nbsp;</b>
-          {txnData.functionFragment.name}&nbsp;
+          {txnData ? txnData.functionFragment.name : "Transfer ETH"}&nbsp;
         </p>
         <p>
           <b>Addressed to :&nbsp;</b>
-          {txnData.args[0]}
+          {txnData ? txnData.args[0] : item.to}
         </p>
       </div>
       {<b style={{ padding: 16 }}>#{typeof(item.nonce)=== "number" ? item.nonce : item.nonce.toNumber()}</b>}

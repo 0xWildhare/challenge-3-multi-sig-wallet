@@ -2,8 +2,9 @@ import React from "react";
 import { Modal } from "antd";
 import Address from "./Address";
 import Balance from "./Balance";
+import { parseEther, formatEther } from "@ethersproject/units";
 
-const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, price, txnInfo = null}) {
+const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, price, item, txnInfo = null}) {
   return (
     <Modal
       title="Transaction Details"
@@ -15,7 +16,7 @@ const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, p
       closable
       maskClosable
     >
-      {txnInfo && (
+      {txnInfo ? (
         <div>
           <p>
             <b>Event Name :</b> {txnInfo.functionFragment.name}
@@ -46,7 +47,28 @@ const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, p
             {txnInfo.sighash}
           </p>
         </div>
-      )}
+      )
+      :
+        <div>
+          <p>
+            <b>Event Name:</b> Transfering ETH
+          </p>
+
+          <h4>Arguments :&nbsp;</h4>
+          <div key="Address" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "left" }}>
+            <b>To: &nbsp;</b>
+            <Address fontSize={16} address={item.to} ensProvider={mainnetProvider} />
+          </div>
+          <div>
+            <b>Amount: &nbsp;</b>
+            <Balance balance={item.value ? item.value : parseEther("" + parseFloat(item.amount).toFixed(12))} dollarMultiplier={price} />
+          </div>
+          <p>
+            <b>SigHash: &nbsp;</b>
+            {txnInfo ? txnInfo.sighash : item.hash}
+          </p>
+        </div>
+      }
     </Modal>
   );
 };
