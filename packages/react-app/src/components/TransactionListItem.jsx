@@ -16,7 +16,7 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
     setIsModalVisible(false);
   };
 
-
+  item = item.args ? item.args : item;
   console.log("🔥🔥🔥🔥", item)
   let txnData;
 

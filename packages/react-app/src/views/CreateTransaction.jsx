@@ -38,8 +38,8 @@ export default function CreateTransaction({
   const [data, setData] = useLocalStorage("data", "0x");
   const [isCreateTxnEnabled, setCreateTxnEnabled] = useState(true);
   const [decodedDataState, setDecodedData] = useState();
-  const [methodName, setMethodName] = useState();
-  const [selectDisabled, setSelectDisabled] = useState(false);
+  //const [methodName, setMethodName] = useState();
+  //const [selectDisabled, setSelectDisabled] = useState(false);
   let decodedData = "";
 
   const [result, setResult] = useState();
@@ -61,6 +61,7 @@ export default function CreateTransaction({
         // decodedDataObject = readContracts ? await readContracts[contractName].interface.parseTransaction({ data }) : "";
         // console.log("decodedDataObject", decodedDataObject);
         // setCreateTxnEnabled(true);
+        /*
         if(decodedDataObject.signature === "addSigner(address,uint256)"){
           setMethodName("addSigner")
           setSelectDisabled(true)
@@ -68,6 +69,7 @@ export default function CreateTransaction({
           setMethodName("removeSigner")
           setSelectDisabled(true)
         }
+        */
         decodedData = (
           <div>
             <div
@@ -153,14 +155,14 @@ export default function CreateTransaction({
               onChange={setCustomNonce}
             />
           </div>
-                  <div style={{margin:8,padding:8}}>
+        {/*<div style={{margin:8,padding:8}}>
           <Select value={methodName} disabled={selectDisabled} style={{ width: "100%" }} onChange={ setMethodName }>
             <Option key="transferFunds">Transfer some ETH</Option>
             <Option key="custom">Custom Call Data</Option>
             <Option disabled={true} key="addSigner">addSigner()</Option>
             <Option disabled={true} key="removeSigner">removeSigner()</Option>
           </Select>
-        </div>
+        </div>*/}
           <div style={inputStyle}>
             <AddressInput
               autoFocus
@@ -171,7 +173,7 @@ export default function CreateTransaction({
             />
           </div>
 
-          {!selectDisabled && <div style={inputStyle}>
+          {/*!selectDisabled &&*/ <div style={inputStyle}>
             <EtherInput price={price} mode="USD" value={amount} onChange={setAmount} />
           </div>}
           <div style={inputStyle}>
