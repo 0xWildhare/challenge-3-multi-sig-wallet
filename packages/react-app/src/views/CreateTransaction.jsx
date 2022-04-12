@@ -3,10 +3,13 @@ import { useHistory } from "react-router-dom";
 import { Button, Select, List, Input, Spin } from "antd";
 import { parseEther } from "@ethersproject/units";
 import { Address, AddressInput, Balance, EtherInput, Blockie } from "../components";
+//import Gun from "gun";
+//const gun = Gun();
+
 const { Option } = Select;
 const { ethers } = require("ethers");
-
 const axios = require("axios");
+
 
 export default function CreateTransaction({
   poolServerUrl,
@@ -152,6 +155,8 @@ export default function CreateTransaction({
           </div>
                   <div style={{margin:8,padding:8}}>
           <Select value={methodName} disabled={selectDisabled} style={{ width: "100%" }} onChange={ setMethodName }>
+            <Option key="transferFunds">Transfer some ETH</Option>
+            <Option key="custom">Custom Call Data</Option>
             <Option disabled={true} key="addSigner">addSigner()</Option>
             <Option disabled={true} key="removeSigner">removeSigner()</Option>
           </Select>
@@ -224,6 +229,8 @@ export default function CreateTransaction({
                   signers: [recover],
                 });
                 // IF SIG IS VALUE ETC END TO SERVER AND SERVER VERIFIES SIG IS RIGHT AND IS SIGNER BEFORE ADDING TY
+
+                //gun.get(readContracts[contractName].address+"_"+localProvider._network.chainId).set(res)
 
                 console.log("RESULT", res.data);
 

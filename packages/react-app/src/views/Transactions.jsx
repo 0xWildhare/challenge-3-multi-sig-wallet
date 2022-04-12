@@ -36,8 +36,9 @@ console.log("LOCALPROVIDER: ", localProvider);
       console.log("POOLSERVER: ", poolServerUrl);
       console.log("contractAddress: ", contractAddress);
       console.log("READCONTRACTS: ", readContracts[contractName])
+      const localChainId = localProvider && localProvider._network ? localProvider._network.chainId : '';
       const res = await axios.get(
-        poolServerUrl + contractAddress + "_" + localProvider._network.chainId,
+        poolServerUrl + contractAddress + "_" + localChainId,
       );
       const newTransactions = [];
       for (const i in res.data) {
