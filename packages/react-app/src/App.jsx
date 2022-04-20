@@ -24,13 +24,20 @@ import {
   NetworkDisplay,
   FaucetHint,
   NetworkSwitch,
+  QRPunkBlockie
 } from "./components";
 import { NETWORKS, ALCHEMY_KEY } from "./constants";
 import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
-import { Home, Owners, Transactions, CreateTransaction, Subgraph } from "./views";
+import {
+  Home,
+  Owners,
+  Transactions,
+  CreateTransaction,
+  CustomTransaction,
+  Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
 
 const { ethers } = require("ethers");
@@ -123,6 +130,9 @@ function App(props) {
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
   const userSigner = userProviderAndSigner.signer;
 
+  console.log("SIGNERANDPROVIDER: ", userProviderAndSigner);
+  console.log("SIGNER: ", userSigner);
+
   useEffect(() => {
     async function getAddress() {
       if (userSigner) {
@@ -142,7 +152,7 @@ function App(props) {
 
   // The transactor wraps transactions and provides notificiations
   const tx = Transactor(userSigner, gasPrice);
-
+console.log("app tx: ", tx)
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
   const yourLocalBalance = useBalance(localProvider, address);
 
@@ -286,6 +296,9 @@ function App(props) {
         <Menu.Item key="/create">
           <Link to="/create">Create</Link>
         </Menu.Item>
+        <Menu.Item key="/custom">
+          <Link to="/custom">Custom</Link>
+        </Menu.Item>
         <Menu.Item key="/pool">
           <Link to="/pool">Pool</Link>
         </Menu.Item>
@@ -339,6 +352,14 @@ function App(props) {
             tx={tx}
             readContracts={readContracts}
             nonce={nonce}
+          />
+        </Route>
+        <Route path="/custom">
+          <CustomTransaction
+          readContracts={readContracts}
+          contractName={contractName}
+          address={address}
+          injectedProvider={injectedProvider}
           />
         </Route>
         <Route path="/pool">

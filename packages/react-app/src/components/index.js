@@ -25,3 +25,6 @@ export { default as MultiAddressInput } from "./MultiAddressInput";
 export { default as TokenSelect } from "./TokenSelect";
 export { default as TransactionDetailsModal } from "./TransactionDetailsModal";
 export { default as TransactionListItem } from "./TransactionListItem";
+export { default as QRPunkBlockie } from "./QRPunkBlockie";
+export { default as SpeedUpTransactions } from "./SpeedUpTransactions";
+export { default as TransactionResponseDisplay } from "./TransactionResponseDisplay";

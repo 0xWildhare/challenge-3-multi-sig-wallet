@@ -4,6 +4,8 @@ import { Address, Balance, Blockie, TransactionDetailsModal } from "../component
 import { EllipsisOutlined } from "@ant-design/icons";
 import { parseEther, formatEther } from "@ethersproject/units";
 
+//@TODO does not need to show value (or "to" but maybe thats ok) when adding or removing signers (i.e. value is 0)
+
 const TransactionListItem = function ({item, mainnetProvider, blockExplorer, price, readContracts, contractName, children}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [txnInfo, setTxnInfo] = useState(null);

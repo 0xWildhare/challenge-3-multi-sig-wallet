@@ -12,8 +12,10 @@ const callbacks = {};
 const DEBUG = true;
 
 export default function Transactor(providerOrSigner, gasPrice, etherscan) {
+
   if (typeof providerOrSigner !== "undefined") {
     // eslint-disable-next-line consistent-return
+    console.log("Im in the transactor! xxxxx tx")
     return async (tx, callback) => {
       let signer;
       let network;
@@ -28,7 +30,7 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
         network = await providerOrSigner.getNetwork();
       }
 
-      console.log("network", network);
+      console.log("network tx", network);
       var options = null;
       var notify = null;
       options = {
