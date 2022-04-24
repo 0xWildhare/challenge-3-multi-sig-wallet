@@ -27,12 +27,13 @@ import { Transactor } from "../helpers";
 import { useBalance, useGasPrice, usePoller, useUserProviderAndSigner } from "eth-hooks";
 import { useExchangePrice, useLocalStorage } from "../hooks"
 import WalletConnect from "@walletconnect/client";
-
+import { useHistory } from "react-router-dom";
 import { TransactionManager } from "../helpers/TransactionManager";
 
 const { confirm } = Modal;
 
 const { ethers } = require("ethers");
+
 /*
     Welcome to 🏗 scaffold-eth !
 
@@ -175,7 +176,7 @@ function CustomTransaction({
 
   const mainnetProvider = scaffoldEthProvider //scaffoldEthProvider && scaffoldEthProvider._network ?  : mainnetInfura;
 
-
+  const history = useHistory();
 
   const logoutOfWeb3Modal = async () => {
     await web3Modal.clearCachedProvider();
@@ -207,7 +208,7 @@ function CustomTransaction({
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, true);
   const userSigner = userProviderAndSigner.signer;
   //const address = useUserAddress(userProviderAndSigner);
-  //const address = readContracts[contractName] ? readContracts[contractName].address : '';
+  const contractAddress = readContracts[contractName] ? readContracts[contractName].address : '';
   console.log("CUSTOMUSERPRIVIDERANDSIGNER: ", userProviderAndSigner);
 
   // You can warn the user if you would like them to be on a specific network
@@ -225,7 +226,7 @@ console.log("gas price tx: ", gasPrice)
   const faucetTx = Transactor(localProvider, gasPrice);
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
-  const yourLocalBalance = useBalance(localProvider, address);
+  const yourLocalBalance = useBalance(localProvider, contractAddress);
 
   const balance = yourLocalBalance && formatEther(yourLocalBalance);
 
@@ -257,7 +258,7 @@ console.log("gas price tx: ", gasPrice)
 
       connector.approveSession({
         accounts: [                 // required
-          address
+          contractAddress
         ],
         chainId: targetNetwork.chainId               // required
       })
@@ -325,10 +326,21 @@ console.log("gas price tx: ", gasPrice)
       confirm({
           width: "90%",
           size: "large",
-          title: 'Send Transaction?',
+          title: 'Create Transaction?',
           icon: <SendOutlined/>,
           content: <pre>{payload && JSON.stringify(payload.params, null, 2)}</pre>,
           onOk:async ()=>{
+            console.log("PAYLOAD",payload)
+            let calldata = payload.params[0].data;
+            console.log("calldata",calldata)
+            setData(calldata)
+            setAmount(payload.params[0].value)
+            setTo(payload.params[0].to)
+            setTimeout(()=>{
+              history.push('/create')
+            },777);
+
+            /*
             let result;
 
             if (payload.method === 'eth_sendTransaction') {
@@ -384,11 +396,13 @@ console.log("gas price tx: ", gasPrice)
               description: result.hash ? result.hash : result,
               placement: "bottomRight",
             });
+            */
           },
           onCancel: ()=>{
             console.log('Cancel');
           },
         });
+
       //setIsWalletModalVisible(true)
       //if(payload.method == "personal_sign"){
       //  console.log("SIGNING A MESSAGE!!!")
@@ -489,7 +503,7 @@ console.log("gas price tx: ", gasPrice)
 */
 
   // Just plug in different 🛰 providers to get your balance on different chains:
-  const yourMainnetBalance = useBalance(mainnetProvider, address);
+  const yourMainnetBalance = useBalance(mainnetProvider, contractAddress);
 
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
@@ -643,7 +657,7 @@ console.log("gas price tx: ", gasPrice)
   useEffect(() => {
     setRoute(window.location.pathname);
   }, [setRoute]);
-
+/*
   let faucetHint = "";
   const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name == "localhost";
 
@@ -673,6 +687,7 @@ console.log("gas price tx: ", gasPrice)
       </div>
     );
   }
+  */
 
   let startingAddress = "";
   if (window.location.pathname) {
@@ -697,7 +712,8 @@ console.log("gas price tx: ", gasPrice)
   }
   // console.log("startingAddress",startingAddress)
   const [amount, setAmount] = useState();
-  const [data, setData] = useState();
+  const [data, setData] = useLocalStorage("data","0x");
+  const [to, setTo] = useLocalStorage("to");
   const [toAddress, setToAddress] = useLocalStorage("punkWalletToAddress", startingAddress, 120000);
 
   const [walletConnectTx, setWalletConnectTx] = useState();
@@ -745,7 +761,7 @@ console.log("gas price tx: ", gasPrice)
     web3Modal && web3Modal.cachedProvider ? (
       ""
     ) : (
-      <Wallet address={address} provider={userProviderAndSigner.provider} ensProvider={mainnetProvider} price={price} />
+      <Wallet address={contractAddress} provider={userProviderAndSigner.provider} ensProvider={mainnetProvider} price={price} />
     );
 
   return (
@@ -762,12 +778,12 @@ console.log("gas price tx: ", gasPrice)
         <Balance value={yourLocalBalance} size={12+window.innerWidth/16} price={price} />
         <span style={{ verticalAlign: "middle" }}>
           {networkSelect}
-          {faucetHint}
+
         </span>
       </div>
 
       <div style={{ padding: 16, cursor: "pointer", backgroundColor: "#FFFFFF", width: 420, margin: "auto" }}>
-        <QRPunkBlockie withQr address={address} showAddress={true} />
+        <QRPunkBlockie withQr address={contractAddress} showAddress={true} />
       </div>
 
       <div style={{ position: "relative", width: 320, margin: "auto", textAlign: "center", marginTop: 32 }}>
@@ -1014,7 +1030,7 @@ console.log("gas price tx: ", gasPrice)
         <Button
           style={{ margin:8, marginTop: 16 }}
           onClick={() => {
-            window.open("https://zapper.fi/account/"+address+"?tab=history");
+            window.open("https://zapper.fi/account/"+contractAddress+"?tab=history");
           }}
         >
           <span style={{ marginRight: 8 }}>📜</span>History
@@ -1023,7 +1039,7 @@ console.log("gas price tx: ", gasPrice)
         <Button
           style={{  margin:8, marginTop: 16, }}
           onClick={() => {
-            window.open("https://zapper.fi/account/"+address);
+            window.open("https://zapper.fi/account/"+contractAddress);
           }}
         >
           <span style={{ marginRight: 8 }}>👛</span> Inventory

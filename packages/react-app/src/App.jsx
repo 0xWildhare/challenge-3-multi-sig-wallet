@@ -243,11 +243,11 @@ console.log("app tx: ", tx)
     mainnetContracts,
     localChainId,
     ]);
-
+console.log("Injected2", injectedProvider);
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new ethers.providers.Web3Provider(provider));
-
+console.log("Injected", injectedProvider);
     provider.on("chainChanged", chainId => {
       console.log(`chain changed to ${chainId}! updating providers`);
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
