@@ -54,11 +54,11 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-const cachedNetwork = window.localStorage.getItem("network");
-let targetNetwork = NETWORKS[cachedNetwork || "ethereum"]; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
-if (!targetNetwork) {
+//const cachedNetwork = window.localStorage.getItem("network");
+//let targetNetwork = NETWORKS[cachedNetwork || "ethereum"]; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+/*if (!targetNetwork) {
   targetNetwork = NETWORKS.xdai;
-}
+}*/
 // 😬 Sorry for all the console logging
 const DEBUG = false;
 
@@ -74,15 +74,15 @@ const scaffoldEthProvider = new StaticJsonRpcProvider("https://rpc.scaffoldeth.i
 // ( ⚠️ Getting "failed to meet quorum" errors? Check your INFURA_I
 
 // 🏠 Your local provider is usually pointed at your local blockchain
-const localProviderUrl = targetNetwork.rpcUrl;
+//const localProviderUrl = targetNetwork.rpcUrl;
 // as you deploy to other networks you can set REACT_APP_PROVIDER=https://dai.poa.network in packages/react-app/.env
-const localProviderUrlFromEnv = process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : localProviderUrl;
-if (DEBUG) console.log("🏠 Connecting to provider:", localProviderUrlFromEnv);
-let localProvider = new StaticJsonRpcProvider(localProviderUrlFromEnv);
+//const localProviderUrlFromEnv = process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : localProviderUrl;
+//if (DEBUG) console.log("🏠 Connecting to provider:", localProviderUrlFromEnv);
+//let localProvider = new StaticJsonRpcProvider(localProviderUrlFromEnv);
 
 
 // 🔭 block explorer URL
-const blockExplorer = targetNetwork.blockExplorer;
+//const blockExplorer = targetNetwork.blockExplorer;
 
 let scanner;
 
@@ -115,66 +115,15 @@ function CustomTransaction({
   readContracts,
   contractName,
   address,
-  injectedProvider
+  injectedProvider,
+  targetNetwork,
+  localProvider,
+  blockExplorer,
+  mainnetProvider
 }) {
 
-  //const [isWalletModalVisible, setIsWalletModalVisible] = useState(false);
-  //const [walletModalData, setWalletModalData] = useState();
 
-  //
-  // TRYING SOMETHING HERE...
-  // the "noNetwork" error is really annoying because the network selection gets locked up
-  //   if you select a bad network, let's have it revert back to ethereum
-  //
-  /*useEffect(()=>{
-    const waitForNetwork = async ()=>{
-      localProvider._networkPromise.catch((e)=>{
-        if(e.event=="noNetwork"){
-          window.localStorage.setItem("network", "ethereum");
-          setTimeout(() => {
-            window.location.reload();
-          }, 1);
-        }
-      })
-    }
-    waitForNetwork()
-  },[ localProvider ])*/
-
-  const [checkingBalances, setCheckingBalances] = useState();
-  // a function to check your balance on every network and switch networks if found...
-  const checkBalances = async address => {
-    if(!checkingBalances){
-      setCheckingBalances(true)
-      setTimeout(()=>{
-        setCheckingBalances(false)
-      },5000)
-      //getting current balance
-      const currentBalance = await localProvider.getBalance(address);
-      if(currentBalance && ethers.utils.formatEther(currentBalance)=="0.0"){
-        console.log("No balance found... searching...")
-        for (const n in NETWORKS) {
-          try{
-            const tempProvider = new JsonRpcProvider(NETWORKS[n].rpcUrl);
-            const tempBalance = await tempProvider.getBalance(address);
-            const result = tempBalance && formatEther(tempBalance);
-            if (result != 0) {
-              console.log("Found a balance in ", n);
-              window.localStorage.setItem("network", n);
-              setTimeout(() => {
-                window.location.reload(true);
-              }, 500);
-            }
-          }catch(e){console.log(e)}
-        }
-      }else{
-        window.location.reload(true);
-      }
-    }
-
-
-  };
-
-  const mainnetProvider = scaffoldEthProvider //scaffoldEthProvider && scaffoldEthProvider._network ?  : mainnetInfura;
+  //const mainnetProvider = scaffoldEthProvider //scaffoldEthProvider && scaffoldEthProvider._network ?  : mainnetInfura;
 
   const history = useHistory();
 
@@ -623,7 +572,7 @@ console.log("gas price tx: ", gasPrice)
       </div>
     );
   }
-
+/*
   const options = [];
   for (const id in NETWORKS) {
     options.push(
@@ -650,7 +599,7 @@ console.log("gas price tx: ", gasPrice)
       {options}
     </Select>
   );
-
+*/
 
 
   const [route, setRoute] = useState();
@@ -770,261 +719,7 @@ console.log("gas price tx: ", gasPrice)
 
       </div>
 
-      {/* ✏️ Edit the header and change the title to your project name */}
 
-
-
-      <div style={{ clear: "both", opacity: yourLocalBalance ? 1 : 0.2, width: 500, margin: "auto",position:"relative" }}>
-        <Balance value={yourLocalBalance} size={12+window.innerWidth/16} price={price} />
-        <span style={{ verticalAlign: "middle" }}>
-          {networkSelect}
-
-        </span>
-      </div>
-
-      <div style={{ padding: 16, cursor: "pointer", backgroundColor: "#FFFFFF", width: 420, margin: "auto" }}>
-        <QRPunkBlockie withQr address={contractAddress} showAddress={true} />
-      </div>
-
-      <div style={{ position: "relative", width: 320, margin: "auto", textAlign: "center", marginTop: 32 }}>
-        <div style={{ padding: 10 }}>
-          <AddressInput
-            ensProvider={mainnetProvider}
-            placeholder="to address"
-            disabled={walletConnectTx}
-            value={toAddress}
-            onChange={setToAddress}
-            hoistScanner={toggle => {
-              scanner = toggle;
-            }}
-            walletConnect={(wcLink)=>{
-              //if(walletConnectUrl){
-                /*try{
-                  //setConnected(false);
-                  //setWalletConnectUrl();
-                  //if(wallectConnectConnector) wallectConnectConnector.killSession();
-                  //if(wallectConnectConnectorSession) setWallectConnectConnectorSession("");
-                  setConnected(false);
-                  //if(wallectConnectConnector) wallectConnectConnector.killSession();
-                  localStorage.removeItem("walletConnectUrl")
-                  localStorage.removeItem("wallectConnectConnectorSession")
-                }catch(e){console.log(e)}
-              }
-
-              setTimeout(()=>{
-                window.location.replace('/wc?uri='+wcLink);
-              },500)*/
-
-              if(walletConnectUrl){
-                //existing session... need to kill it and then connect new one....
-                setConnected(false);
-                if(wallectConnectConnector) wallectConnectConnector.killSession();
-                localStorage.removeItem("walletConnectUrl")
-                localStorage.removeItem("wallectConnectConnectorSession")
-                localStorage.setItem("wallectConnectNextSession",wcLink)
-              }else{
-                setWalletConnectUrl(wcLink)
-              }
-
-            }}
-          />
-        </div>
-
-        <div style={{ padding: 10 }}>
-          {walletConnectTx ? <Input disabled={true} value={amount}/>:<EtherInput
-            price={price || targetNetwork.price}
-            value={amount}
-            token={targetNetwork.token || "ETH"}
-            onChange={value => {
-              setAmount(value);
-            }}
-          />}
-
-        </div>
-        {/*
-          <div style={{ padding: 10 }}>
-          <Input
-          placeholder="data (0x0000)"
-          value={data}
-          disabled={walletConnectTx}
-          onChange={(e)=>{
-            setData(e.target.value)
-          }}
-          />
-          </div>
-          */}
-        <div style={{ position: "relative", top: 10, left:40 }}> {networkDisplay} </div>
-        <div style={{ padding: 10 }}>
-          <Button
-            key="submit"
-            type="primary"
-            disabled={loading || !amount || !toAddress}
-            loading={loading}
-            onClick={async () => {
-              setLoading(true);
-
-              let value;
-              try {
-
-                console.log("PARSE ETHER",amount)
-                value = parseEther("" + amount);
-                console.log("PARSEDVALUE",value)
-              } catch (e) {
-                const floatVal = parseFloat(amount).toFixed(8);
-
-                console.log("floatVal",floatVal)
-                // failed to parseEther, try something else
-                value = parseEther("" + floatVal);
-                console.log("PARSEDfloatVALUE",value)
-              }
-
-              let txConfig = {
-                to: toAddress,
-                chainId: selectedChainId,
-                value,
-              }
-
-              if(targetNetwork.name=="arbitrum"){
-                //txConfig.gasLimit = 21000;
-                //ask rpc for gas price
-              }else if(targetNetwork.name=="optimism"){
-                //ask rpc for gas price
-              }else if(targetNetwork.name=="gnosis"){
-                //ask rpc for gas price
-              }else if(targetNetwork.name=="polygon"){
-                  //ask rpc for gas price
-              }else{
-                txConfig.gasPrice = gasPrice
-              }
-
-              console.log("SEND AND NETWORK",targetNetwork)
-              let result = tx(txConfig);
-              // setToAddress("")
-              setAmount("");
-              setData("");
-              result = await result;
-              console.log(result);
-              setLoading(false);
-            }}
-          >
-            {loading || !amount || !toAddress ? <CaretUpOutlined /> : <SendOutlined style={{ color: "#FFFFFF" }} />}{" "}
-            Send
-          </Button>
-        </div>
-      </div>
-
-      {/* <BrowserRouter>
-
-        <Menu style={{ textAlign:"center" }} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/">
-            <Link
-              onClick={() => {
-                setRoute("/");
-              }}
-              to="/"
-            >
-              YourContract
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/hints">
-            <Link
-              onClick={() => {
-                setRoute("/hints");
-              }}
-              to="/hints"
-            >
-              Hints
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/exampleui">
-            <Link
-              onClick={() => {
-                setRoute("/exampleui");
-              }}
-              to="/exampleui"
-            >
-              ExampleUI
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/mainnetdai">
-            <Link
-              onClick={() => {
-                setRoute("/mainnetdai");
-              }}
-              to="/mainnetdai"
-            >
-              Mainnet DAI
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/subgraph">
-            <Link
-              onClick={() => {
-                setRoute("/subgraph");
-              }}
-              to="/subgraph"
-            >
-              Subgraph
-            </Link>
-          </Menu.Item>
-        </Menu>
-        <Switch>
-          <Route exact path="/">
-            }
-            <Contract
-              name="YourContract"
-              signer={userProviderAndSigner.getSigner()}
-              provider={localProvider}
-              address={address}
-              blockExplorer={blockExplorer}
-            />
-
-
-
-          </Route>
-          <Route path="/hints">
-            <Hints
-              address={address}
-              yourLocalBalance={yourLocalBalance}
-              mainnetProvider={mainnetProvider}
-              price={price}
-            />
-          </Route>
-          <Route path="/exampleui">
-            <ExampleUI
-              address={address}
-              userProvider={userProvider}
-              mainnetProvider={mainnetProvider}
-              localProvider={localProvider}
-              yourLocalBalance={yourLocalBalance}
-              price={price}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-              purpose={purpose}
-              setPurposeEvents={setPurposeEvents}
-            />
-          </Route>
-          <Route path="/mainnetdai">
-            <Contract
-              name="DAI"
-              customContract={mainnetDAIContract}
-              signer={userProvider.getSigner()}
-              provider={mainnetProvider}
-              address={address}
-              blockExplorer="https://etherscan.io/"
-            />
-          </Route>
-          <Route path="/subgraph">
-            <Subgraph
-              subgraphUri={props.subgraphUri}
-              tx={tx}
-              writeContracts={writeContracts}
-              mainnetProvider={mainnetProvider}
-            />
-          </Route>
-        </Switch>
-      </BrowserRouter>
-*/}
 
       <div style={{ zIndex: -1, paddingTop: 128, opacity: 0.5, fontSize: 12 }}>
         <Button
