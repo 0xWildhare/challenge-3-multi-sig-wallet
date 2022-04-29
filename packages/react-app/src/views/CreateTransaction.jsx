@@ -10,7 +10,7 @@ const { Option } = Select;
 const { ethers } = require("ethers");
 const axios = require("axios");
 
-//@TODO dumb this page down - just for sending eth (might remove later?)
+//@TODO dumb this page down - just for sending eth (might remove later)
 
 export default function CreateTransaction({
   poolServerUrl,

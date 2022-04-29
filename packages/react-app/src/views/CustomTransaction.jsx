@@ -34,6 +34,7 @@ const { confirm } = Modal;
 
 const { ethers } = require("ethers");
 
+
 /*
     Welcome to 🏗 scaffold-eth !
 
@@ -269,7 +270,8 @@ console.log("gas price tx: ", gasPrice)
         ]
       }
       */
-
+      const payloadValue = ethers.utils.formatUnits(ethers.BigNumber.from(payload.params[0].value));
+      console.log("PAYLOADVALUE", payloadValue);
       //setWalletModalData({payload:payload,connector: connector})
 
       confirm({
@@ -283,7 +285,8 @@ console.log("gas price tx: ", gasPrice)
             let calldata = payload.params[0].data;
             console.log("calldata",calldata)
             setData(calldata)
-            setAmount(payload.params[0].value)
+            setAmount(payloadValue)
+            console.log("PAYLOADAMOUNT1", amount)
             setTo(payload.params[0].to)
             setTimeout(()=>{
               history.push('/create')
@@ -660,7 +663,7 @@ console.log("gas price tx: ", gasPrice)
     } */
   }
   // console.log("startingAddress",startingAddress)
-  const [amount, setAmount] = useState();
+  const [amount, setAmount] = useLocalStorage("amount", "0");
   const [data, setData] = useLocalStorage("data","0x");
   const [to, setTo] = useLocalStorage("to");
   const [toAddress, setToAddress] = useLocalStorage("punkWalletToAddress", startingAddress, 120000);
