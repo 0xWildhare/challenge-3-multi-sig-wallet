@@ -270,90 +270,66 @@ console.log("gas price tx: ", gasPrice)
         ]
       }
       */
-      const payloadValue = ethers.utils.formatUnits(ethers.BigNumber.from(payload.params[0].value));
-      console.log("PAYLOADVALUE", payloadValue);
+
+
       //setWalletModalData({payload:payload,connector: connector})
+      if (payload.method === 'eth_sendTransaction') {
+        confirm({
+            width: "90%",
+            size: "large",
+            title: 'Create Transaction?',
+            icon: <SendOutlined/>,
+            content: <pre>{payload && JSON.stringify(payload.params, null, 2)}</pre>,
+            onOk:async ()=>{
+              console.log("PAYLOAD",payload)
+              let calldata = payload.params[0].data;
+              console.log("calldata",calldata)
+              setData(calldata)
+              const payloadValue = payload.params[0].value ? ethers.utils.formatUnits(ethers.BigNumber.from(payload.params[0].value)) : 0;
+              setAmount(payloadValue)
+              console.log("PAYLOADAMOUNT1", amount)
+              setTo(payload.params[0].to)
+              setTimeout(()=>{
+                history.push('/create')
+              },777);
+            },
+            onCancel: ()=>{
+              console.log('Cancel');
+            },
+          });
+        }
+      else if (payload.method === 'eth_signTypedData_v4') {
+        const payloadParams = JSON.parse(payload.params[1]);
+        if (payloadParams.primaryType === "Permit") {
 
-      confirm({
-          width: "90%",
-          size: "large",
-          title: 'Create Transaction?',
-          icon: <SendOutlined/>,
-          content: <pre>{payload && JSON.stringify(payload.params, null, 2)}</pre>,
-          onOk:async ()=>{
-            console.log("PAYLOAD",payload)
-            let calldata = payload.params[0].data;
-            console.log("calldata",calldata)
-            setData(calldata)
-            setAmount(payloadValue)
-            console.log("PAYLOADAMOUNT1", amount)
-            setTo(payload.params[0].to)
-            setTimeout(()=>{
-              history.push('/create')
-            },777);
+          const tokenContract = payloadParams.domain.verifyingContract;
+          const spenderAddress = payloadParams.message.spender;
+          const tokenAmount = ethers.BigNumber.from(payloadParams.message.value)._hex;
 
-            /*
-            let result;
+          let calldata = "0x095ea7b3000000000000000000000000"+spenderAddress.slice(2)+"000000000000000000000000000000000000000000000000"+tokenAmount.slice(2);
+          console.log("calldata:", calldata)
+          confirm({
+              width: "90%",
+              size: "large",
+              title: 'Approve Token Spend',
+              icon: <SendOutlined/>,
+              content: <pre>{payloadParams && JSON.stringify(payloadParams.domain, null, 2) + JSON.stringify(payloadParams.message, null, 2)}</pre>,
+              onOk:async ()=>{
 
-            if (payload.method === 'eth_sendTransaction') {
-              try {
-                let signer = userProviderAndSigner.signer;
-
-                // I'm not sure if all the Dapps send an array or not
-                let params = payload.params;
-                if (Array.isArray(params)) {
-                  params = params[0];
-                }
-
-                // Ethers uses gasLimit instead of gas
-                let gasLimit = params.gas;
-                params.gasLimit = gasLimit;
-                delete params.gas;
-
-                // Speed up transaction list is filtered by chainId
-                params.chainId = targetNetwork.chainId
-
-                result = await signer.sendTransaction(params);
-
-                const transactionManager = new TransactionManager(userProviderAndSigner.provider, signer, true);
-                transactionManager.setTransactionResponse(result);
-              }
-              catch (error) {
-                // Fallback to original code without the speed up option
-                console.error("Coudn't create transaction which can be speed up", error);
-                result = await userProviderAndSigner.signer.send(payload.method, payload.params)
-              }
-            }
-            else {
-              result = await userProviderAndSigner.signer.send(payload.method, payload.params)
-            }
-
-            //console.log("MSG:",ethers.utils.toUtf8Bytes(msg).toString())
-
-            //console.log("payload.params[0]:",payload.params[1])
-            //console.log("address:",address)
-
-            //let userSigner = userProvider.getSigner()
-            //let result = await userSigner.signMessage(msg)
-            console.log("RESULT:",result)
-
-
-            connector.approveRequest({
-              id: payload.id,
-              result: result.hash ? result.hash : result
+                setData(calldata)
+                setTo(tokenContract)
+                setTimeout(()=>{
+                  history.push('/create')
+                },777);
+              },
+              onCancel: ()=>{
+                console.log('Cancel');
+              },
             });
+        }
+        else console.log("signTypedData payloads only work for token approvals");
 
-            notification.info({
-              message: "Wallet Connect Transaction Sent",
-              description: result.hash ? result.hash : result,
-              placement: "bottomRight",
-            });
-            */
-          },
-          onCancel: ()=>{
-            console.log('Cancel');
-          },
-        });
+      }
 
       //setIsWalletModalVisible(true)
       //if(payload.method == "personal_sign"){
