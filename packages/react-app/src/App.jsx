@@ -28,7 +28,7 @@ import {
 } from "./components";
 import { NETWORKS, ALCHEMY_KEY } from "./constants";
 import externalContracts from "./contracts/external_contracts";
-// contracts
+
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import {
@@ -187,10 +187,13 @@ console.log("app tx: ", tx)
   if(DEBUG) console.log("✳️ signaturesRequired:",signaturesRequired)
 
 
+
+
   // EXTERNAL CONTRACT EXAMPLE:
   //
   // If you want to bring in the mainnet DAI contract it would look like:
   const mainnetContracts = useContractLoader(mainnetProvider, contractConfig);
+
 
   // If you want to call a function on a new block
   useOnBlock(mainnetProvider, () => {

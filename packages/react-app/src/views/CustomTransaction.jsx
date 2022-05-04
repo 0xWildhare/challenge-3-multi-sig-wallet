@@ -161,6 +161,12 @@ function CustomTransaction({
   const contractAddress = readContracts[contractName] ? readContracts[contractName].address : '';
   console.log("CUSTOMUSERPRIVIDERANDSIGNER: ", userProviderAndSigner);
 
+  //let calldata = readContracts[""];
+
+
+
+  //console.log("erc20 readContracts", calldata);
+
   // You can warn the user if you would like them to be on a specific network
   const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
   const selectedChainId = userProviderAndSigner && userProviderAndSigner.provider && userProviderAndSigner.provider._network && userProviderAndSigner.provider._network.chainId;
@@ -301,12 +307,15 @@ console.log("gas price tx: ", gasPrice)
       else if (payload.method === 'eth_signTypedData_v4') {
         const payloadParams = JSON.parse(payload.params[1]);
         if (payloadParams.primaryType === "Permit") {
-
           const tokenContract = payloadParams.domain.verifyingContract;
           const spenderAddress = payloadParams.message.spender;
-          const tokenAmount = ethers.BigNumber.from(payloadParams.message.value)._hex;
+          const tokenAmount = payloadParams.message.value;
 
-          let calldata = "0x095ea7b3000000000000000000000000"+spenderAddress.slice(2)+"000000000000000000000000000000000000000000000000"+tokenAmount.slice(2);
+          let ABI = ["function approve(address _spender, uint value)"];
+          let iface = new ethers.utils.Interface(ABI);
+          const calldata = iface.encodeFunctionData("approve", [ spenderAddress, tokenAmount ]);
+          //let calldata = "0x095ea7b3000000000000000000000000" + spenderAddress.slice(2) + "000000000000000000000000000000000000000000000000" + tokenAmount.slice(2);
+
           console.log("calldata:", calldata)
           confirm({
               width: "90%",
