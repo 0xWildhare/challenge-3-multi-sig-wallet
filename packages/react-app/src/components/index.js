@@ -28,3 +28,4 @@ export { default as TransactionListItem } from "./TransactionListItem";
 export { default as QRPunkBlockie } from "./QRPunkBlockie";
 export { default as SpeedUpTransactions } from "./SpeedUpTransactions";
 export { default as TransactionResponseDisplay } from "./TransactionResponseDisplay";
+export { default as Complete } from "./Complete";

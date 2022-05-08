@@ -22,7 +22,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     from: deployer,
     args: [
       chainId,
-      ["0x8b75f8855FD5Faa6371f0382E5373b951215E32A"],
+      ["0x521B2cE927FD6d0D473789Bd3c70B296BBce613e"],
       1
     ],
     log: true,

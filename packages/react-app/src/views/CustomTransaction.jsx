@@ -21,6 +21,8 @@ import {
   Ramp,
   SpeedUpTransactions,
   Wallet,
+  Complete,
+
 } from "../components";
 import { INFURA_ID, NETWORK, NETWORKS } from "../constants";
 import { Transactor } from "../helpers";
@@ -29,11 +31,12 @@ import { useExchangePrice, useLocalStorage } from "../hooks"
 import WalletConnect from "@walletconnect/client";
 import { useHistory } from "react-router-dom";
 import { TransactionManager } from "../helpers/TransactionManager";
-
+import ERC20 from "../contracts/ERC20.json";
 const { confirm } = Modal;
 
 const { ethers } = require("ethers");
 
+const TOKEN_LIST = 'https://gateway.ipfs.io/ipns/tokens.uniswap.org'
 
 /*
     Welcome to 🏗 scaffold-eth !
@@ -659,7 +662,10 @@ console.log("gas price tx: ", gasPrice)
 
   const [depositing, setDepositing] = useState();
   const [depositAmount, setDepositAmount] = useState();
-
+  const [customTokenAddress, setCustomTokenAddress] = useState();
+  const [custTokenSymbol, setCustTokenSymbol] = useState();
+  const [custTokenName, setCustTokenName] = useState();
+  const [custTokenBalance, setCustTokenBalance] = useState();
 /*
   const handleOk = async () => {
     setIsWalletModalVisible(false);
@@ -693,6 +699,27 @@ console.log("gas price tx: ", gasPrice)
   };
 
 */
+  const handleCustomToken = async (e) => {
+    let enteredAddress = e.target.value;
+    if (ethers.utils.isAddress(enteredAddress)) {
+      const customContract = new ethers.Contract(enteredAddress, ERC20.abi, localProvider);
+      setCustomTokenAddress(enteredAddress)
+      const newCustTokenSymbol = await customContract.functions.symbol();
+      const newCustTokenName = await customContract.functions.name();
+      const newCustTokenBalance = await customContract.functions.balanceOf(contractAddress);
+      const tokDecimals = await customContract.functions.decimals();
+      const newCustTokBalFormatted = ethers.utils.formatUnits(newCustTokenBalance[0], tokDecimals);
+      console.log('tokBal', newCustTokBalFormatted);
+      setCustTokenSymbol(newCustTokenSymbol);
+      setCustTokenName(newCustTokenName);
+      setCustTokenBalance(newCustTokBalFormatted);
+    } else {
+      setCustTokenSymbol('');
+      setCustTokenName('');
+      setCustTokenBalance('');
+    }
+    console.log("customtokenaddress", customTokenAddress);
+  }
 
   const walletDisplay =
     web3Modal && web3Modal.cachedProvider ? (
@@ -704,12 +731,49 @@ console.log("gas price tx: ", gasPrice)
   return (
     <div className="CustomTransaction">
       <div className="site-page-header-ghost-wrapper">
+        <h1>ERC20 Interactions</h1>
+      </div>
+
+      <div>add token list here</div>
+      {/* will work on this later <Complete />*/}
+
+      <div style={{ clear: "both", width: 360, margin: "auto" ,marginTop:12, position:"relative" }}>
+        <Input
+          placeholder={"enter token address"}
+          onChange={handleCustomToken}
+        />
+      </div>
+
+      <div style={{ clear: "both", width: 350, margin: "auto" ,marginTop:12, position:"relative" }}>
+        {custTokenSymbol ? <>Symbol: &nbsp; {custTokenSymbol}     </> : ''}
+        <>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </>
+        {custTokenName ? <> Name: &nbsp; {custTokenName}</> : ''}
+        <br />
+        {custTokenBalance ? <>Balance: &nbsp; {custTokenBalance}</> : ''}
 
       </div>
 
+      
 
+      <div style={{ clear: "both", width: 500, margin: "auto" ,marginTop:100, position:"relative"}}>
+        {connected?<span style={{cursor:"pointer",padding:8,fontSize:30,position:"absolute",top:-16,left:28}}>✅</span>:""}
+        <Input
+          style={{width:"70%"}}
+          placeholder={"wallet connect url (or use the scanner-->)"}
+          value={walletConnectUrl}
+          disabled={connected}
+          onChange={(e)=>{
+            setWalletConnectUrl(e.target.value)
+          }}
+        />{connected?<span style={{cursor:"pointer",padding:10,fontSize:30,position:"absolute", top:-18}} onClick={()=>{
+          setConnected(false);
+          if(wallectConnectConnector) wallectConnectConnector.killSession();
+          localStorage.removeItem("walletConnectUrl")
+          localStorage.removeItem("wallectConnectConnectorSession")
+        }}>🗑</span>:""}
+      </div>
 
-      <div style={{ zIndex: -1, paddingTop: 128, opacity: 0.5, fontSize: 12 }}>
+      <div style={{ zIndex: -1, paddingTop: 12, opacity: 0.5, fontSize: 12 }}>
         <Button
           style={{ margin:8, marginTop: 16 }}
           onClick={() => {
@@ -730,24 +794,6 @@ console.log("gas price tx: ", gasPrice)
 
 
 
-      </div>
-
-      <div style={{ clear: "both", width: 500, margin: "auto" ,marginTop:32, position:"relative"}}>
-        {connected?<span style={{cursor:"pointer",padding:8,fontSize:30,position:"absolute",top:-16,left:28}}>✅</span>:""}
-        <Input
-          style={{width:"70%"}}
-          placeholder={"wallet connect url (or use the scanner-->)"}
-          value={walletConnectUrl}
-          disabled={connected}
-          onChange={(e)=>{
-            setWalletConnectUrl(e.target.value)
-          }}
-        />{connected?<span style={{cursor:"pointer",padding:10,fontSize:30,position:"absolute", top:-18}} onClick={()=>{
-          setConnected(false);
-          if(wallectConnectConnector) wallectConnectConnector.killSession();
-          localStorage.removeItem("walletConnectUrl")
-          localStorage.removeItem("wallectConnectConnectorSession")
-        }}>🗑</span>:""}
       </div>
 
 
@@ -800,7 +846,7 @@ console.log("gas price tx: ", gasPrice)
       </div> : ""}
 
 
-      <div style={{ zIndex: -1, padding: 64, opacity: 0.5, fontSize: 12 }}>
+      <div style={{ zIndex: -1, padding: 12, opacity: 0.5, fontSize: 12 }}>
         created with <span style={{ marginRight: 4 }}>🏗</span>
         <a href="https://github.com/austintgriffith/scaffold-eth#-scaffold-eth" target="_blank">
           scaffold-eth
@@ -868,22 +914,6 @@ console.log("gas price tx: ", gasPrice)
   );
 }
 
-/* eslint-disable */
-window.ethereum &&
-  window.ethereum.on("chainChanged", chainId => {
-    web3Modal.cachedProvider &&
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
-  });
 
-window.ethereum &&
-  window.ethereum.on("accountsChanged", accounts => {
-    web3Modal.cachedProvider &&
-      setTimeout(() => {
-        window.location.reload();
-      }, 1);
-  });
-/* eslint-enable */
 
 export default CustomTransaction;
