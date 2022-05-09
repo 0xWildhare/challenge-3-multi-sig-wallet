@@ -2,7 +2,7 @@ import { CaretUpOutlined, ScanOutlined, SendOutlined, ReloadOutlined } from "@an
 import { JsonRpcProvider, StaticJsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { formatEther, parseEther } from "@ethersproject/units";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { Alert, Button, Col, Row, Select, Input, Modal, notification } from "antd";
+import { Alert, Button, Col, Row, Select, Input, Modal, notification, Space, Popconfirm } from "antd";
 import "antd/dist/antd.css";
 import { useUserAddress } from "eth-hooks";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
@@ -33,7 +33,7 @@ import { useHistory } from "react-router-dom";
 import { TransactionManager } from "../helpers/TransactionManager";
 import ERC20 from "../contracts/ERC20.json";
 const { confirm } = Modal;
-
+const { Option } = Select;
 const { ethers } = require("ethers");
 
 const TOKEN_LIST = 'https://gateway.ipfs.io/ipns/tokens.uniswap.org'
@@ -165,7 +165,7 @@ function CustomTransaction({
   console.log("CUSTOMUSERPRIVIDERANDSIGNER: ", userProviderAndSigner);
 
   //let calldata = readContracts[""];
-
+  let iface = new ethers.utils.Interface(ERC20.abi);
 
 
   //console.log("erc20 readContracts", calldata);
@@ -313,9 +313,6 @@ console.log("gas price tx: ", gasPrice)
           const tokenContract = payloadParams.domain.verifyingContract;
           const spenderAddress = payloadParams.message.spender;
           const tokenAmount = payloadParams.message.value;
-
-          let ABI = ["function approve(address _spender, uint value)"];
-          let iface = new ethers.utils.Interface(ABI);
           const calldata = iface.encodeFunctionData("approve", [ spenderAddress, tokenAmount ]);
           //let calldata = "0x095ea7b3000000000000000000000000" + spenderAddress.slice(2) + "000000000000000000000000000000000000000000000000" + tokenAmount.slice(2);
 
@@ -666,39 +663,28 @@ console.log("gas price tx: ", gasPrice)
   const [custTokenSymbol, setCustTokenSymbol] = useState();
   const [custTokenName, setCustTokenName] = useState();
   const [custTokenBalance, setCustTokenBalance] = useState();
-/*
-  const handleOk = async () => {
-    setIsWalletModalVisible(false);
+  const [tokDecimals, setTokDecimals] = useState();
+  const [transferToAddress, setTransferToAddress] = useState();
+  const [transferAmount, setTransferAmount] = useState();
+  const [formattedTransferAmount, setFormattedTransferAmount] = useState();
+  const [methodName, setMethodName] = useState("transfer");
+  const [tokenMenuVisibility, setTokenMenuVisibility] = useState("hidden");
 
-    let result = await userProvider.send(walletModalData.payload.method, walletModalData.payload.params)
+  const handleTransferTo = async (e) => {
+    let enteredTo = e.target.value;
+    if (ethers.utils.isAddress(enteredTo)) {
+      setTransferToAddress(enteredTo)
 
-    //console.log("MSG:",ethers.utils.toUtf8Bytes(msg).toString())
+    } else setTransferToAddress('');
+  }
 
-    //console.log("payload.params[0]:",payload.params[1])
-    //console.log("address:",address)
+  const handleTransferAmount = async (e) => {
+    let enteredAmount = e.target.value;
+    setTransferAmount(enteredAmount)
+    let enteredAmountFormatted = ethers.utils.parseUnits(enteredAmount, tokDecimals);
+    setFormattedTransferAmount(enteredAmountFormatted);
+  }
 
-    //let userSigner = userProvider.getSigner()
-    //let result = await userSigner.signMessage(msg)
-    console.log("RESULT:",result)
-
-
-    walletModalData.connector.approveRequest({
-      id: walletModalData.payload.id,
-      result: result
-    });
-
-    notification.info({
-      message: "Wallet Connect Transaction Sent",
-      description: result.hash,
-      placement: "bottomRight",
-    });
-  };
-
-  const handleCancel = () => {
-    setIsWalletModalVisible(false);
-  };
-
-*/
   const handleCustomToken = async (e) => {
     let enteredAddress = e.target.value;
     if (ethers.utils.isAddress(enteredAddress)) {
@@ -707,16 +693,19 @@ console.log("gas price tx: ", gasPrice)
       const newCustTokenSymbol = await customContract.functions.symbol();
       const newCustTokenName = await customContract.functions.name();
       const newCustTokenBalance = await customContract.functions.balanceOf(contractAddress);
-      const tokDecimals = await customContract.functions.decimals();
-      const newCustTokBalFormatted = ethers.utils.formatUnits(newCustTokenBalance[0], tokDecimals);
+      const newTokDecimals = await customContract.functions.decimals();
+      const newCustTokBalFormatted = ethers.utils.formatUnits(newCustTokenBalance[0], newTokDecimals);
       console.log('tokBal', newCustTokBalFormatted);
       setCustTokenSymbol(newCustTokenSymbol);
       setCustTokenName(newCustTokenName);
       setCustTokenBalance(newCustTokBalFormatted);
+      setTokDecimals(newTokDecimals);
+      setTokenMenuVisibility("visible")
     } else {
       setCustTokenSymbol('');
       setCustTokenName('');
       setCustTokenBalance('');
+      setTokenMenuVisibility("hidden")
     }
     console.log("customtokenaddress", customTokenAddress);
   }
@@ -750,12 +739,73 @@ console.log("gas price tx: ", gasPrice)
         {custTokenName ? <> Name: &nbsp; {custTokenName}</> : ''}
         <br />
         {custTokenBalance ? <>Balance: &nbsp; {custTokenBalance}</> : ''}
-
       </div>
 
-      
+      <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:24, visibility:tokenMenuVisibility }}>
+        <div style={{margin:8,padding:8}}>
+          <Select value={methodName} style={{ width: "100%" }} onChange={ setMethodName }>
+            <Option key="transfer">Transfer</Option>
+            <Option key="approve">Approve</Option>
+          </Select>
+        </div>
+        <div style={{margin:8,padding:8}}>
+          <AddressInput
+            autoFocus
+            ensProvider={mainnetProvider}
+            placeholder={methodName == "transfer" ? "to" : "spender"}
+            value={transferToAddress}
+            onChange={setTransferToAddress}
+          />
+        </div>
+        <div style={{margin:8,padding:8}}>
+          <Input
+            ensProvider={mainnetProvider}
+            placeholder="amount"
+            value={transferAmount}
+            onChange={handleTransferAmount}
+          />
+        </div>
+        <div style={{margin:8,padding:8}}>
+          <Button
+            disabled={transferAmount && transferToAddress && methodName ? false : true}
+            onClick={()=>{
+              if (transferAmount && transferToAddress && methodName) {
+                console.log("METHOD",setMethodName)
+                let calldata = iface.encodeFunctionData(methodName,[transferToAddress, formattedTransferAmount])
+                console.log("calldata",calldata)
+                setData(calldata)
+                setAmount("0")
+                setTo(customTokenAddress)
+                setTimeout(()=>{
+                  history.push('/create')
+                },777)
+              }
+            }}
+          >
+          Create Tx
+          </Button>
+        </div>
+      </div>
 
-      <div style={{ clear: "both", width: 500, margin: "auto" ,marginTop:100, position:"relative"}}>
+      {/*}<div>
+        <Space>
+          Transfer
+          <Input
+            placeholder={"To"}
+
+          /><Input
+            placeholder={"Amount"}
+
+          />
+          <Popconfirm title="Are you sure?" okText="Yes" cancelText="No">
+            <Button>Confirm</Button>
+          </Popconfirm>
+        </Space>
+      </div>*/}
+
+
+
+      <div style={{ clear: "both", width: 500, margin: "auto" ,marginTop:48, position:"relative"}}>
         {connected?<span style={{cursor:"pointer",padding:8,fontSize:30,position:"absolute",top:-16,left:28}}>✅</span>:""}
         <Input
           style={{width:"70%"}}
