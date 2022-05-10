@@ -25,8 +25,10 @@ const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, p
             <b>Function Signature :</b> {txnInfo.signature}
           </p>
           <h4>Arguments :&nbsp;</h4>
+          {console.log("Inputs:", txnInfo.functionFragment.inputs)}
           {txnInfo.functionFragment.inputs.map((element, index) => {
             if (element.type === "address") {
+              console.log("inputs2",txnInfo.args[index]);
               return (
                 <div key={element.name} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "left" }}>
                   <b>{element.name} :&nbsp;</b>
@@ -34,10 +36,17 @@ const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, p
                 </div>
               );
             }
+            let displayAmount;
             if (element.type === "uint256") {
+              let displyAmount;
+              try {
+                displayAmount = txnInfo.args[index].toNumber()
+              } catch(error) {
+                displayAmount = formatEther(txnInfo.args[index])
+              }
               return (
                 <p key={element.name}>
-                  {element.name === "value" ? <><b>{element.name} : </b> <Balance fontSize={16} balance={txnInfo.args[index]} dollarMultiplier={price} /> </> : <><b>{element.name} : </b> {txnInfo.args[index] && txnInfo.args[index].toNumber()}</>}
+                  { element.name === "value" ? <><b>{element.name} : </b> <Balance fontSize={16} balance={txnInfo.args[index]} dollarMultiplier={price} /> </> : <><b>{element.name} : </b> {txnInfo.args[index] &&  displayAmount /*txnInfo.args[index].toNumber()*/}</>}
                 </p>
               );
             }

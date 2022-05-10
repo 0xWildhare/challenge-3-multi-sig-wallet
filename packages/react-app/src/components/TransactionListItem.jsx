@@ -26,22 +26,21 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
   let txnData;
 
   if(item.data != "0x") {
-    if (item.to === item.address) {
+    if (item.to === readContracts[contractName].address) {
       try {
         txnData = readContracts[contractName].interface.parseTransaction(item);
-        console.log("txndata:", txnData);
+        console.log("txndata1:", txnData);
       } catch (error){
         console.log("ERROR", error)
       }
     } else {
       try {
         txnData = iface.parseTransaction(item);
-        console.log("txndata:", txnData);
+        console.log("txndata2:", txnData);
       } catch (error){
         console.log("ERROR", error)
-      }
-
     }
+   }
   }
 
   return <>
