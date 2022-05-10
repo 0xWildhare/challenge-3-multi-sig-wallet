@@ -189,15 +189,63 @@ console.log("gas price tx: ", gasPrice)
 
   const balance = yourLocalBalance && formatEther(yourLocalBalance);
 
-  // if you don't have any money, scan the other networks for money
-  // lol this poller is a bad idea why does it keep
-  /*usePoller(() => {
-    if (!cachedNetwork) {
-      if (balance == 0) {
-        checkBalances(address);
-      }
+  const [amount, setAmount] = useLocalStorage("amount", "0");
+  const [data, setData] = useLocalStorage("data","0x");
+  const [to, setTo] = useLocalStorage("to");
+
+  const [walletConnectTx, setWalletConnectTx] = useState();
+
+  const [loading, setLoading] = useState(false);
+
+  const [customTokenAddress, setCustomTokenAddress] = useState();
+  const [custTokenSymbol, setCustTokenSymbol] = useState();
+  const [custTokenName, setCustTokenName] = useState();
+  const [custTokenBalance, setCustTokenBalance] = useState();
+  const [tokDecimals, setTokDecimals] = useState();
+  const [transferToAddress, setTransferToAddress] = useState();
+  const [transferAmount, setTransferAmount] = useState();
+  const [formattedTransferAmount, setFormattedTransferAmount] = useState();
+  const [methodName, setMethodName] = useState("transfer");
+  const [tokenMenuVisibility, setTokenMenuVisibility] = useState("hidden");
+
+  const handleTransferTo = async (e) => {
+    let enteredTo = e.target.value;
+    if (ethers.utils.isAddress(enteredTo)) {
+      setTransferToAddress(enteredTo)
+    } else setTransferToAddress('');
+  }
+
+  const handleTransferAmount = async (e) => {
+    let enteredAmount = e.target.value;
+    setTransferAmount(enteredAmount)
+    let enteredAmountFormatted = ethers.utils.parseUnits(enteredAmount, tokDecimals);
+    setFormattedTransferAmount(enteredAmountFormatted);
+  }
+
+  const handleCustomToken = async (e) => {
+    let enteredAddress = e.target.value;
+    if (ethers.utils.isAddress(enteredAddress)) {
+      const customContract = new ethers.Contract(enteredAddress, ERC20.abi, localProvider);
+        setCustomTokenAddress(enteredAddress)
+      const newCustTokenSymbol = await customContract.functions.symbol();
+      const newCustTokenName = await customContract.functions.name();
+      const newCustTokenBalance = await customContract.functions.balanceOf(contractAddress);
+      const newTokDecimals = await customContract.functions.decimals();
+      const newCustTokBalFormatted = ethers.utils.formatUnits(newCustTokenBalance[0], newTokDecimals);
+      console.log('tokBal', newCustTokBalFormatted);
+      setCustTokenSymbol(newCustTokenSymbol);
+      setCustTokenName(newCustTokenName);
+      setCustTokenBalance(newCustTokBalFormatted);
+      setTokDecimals(newTokDecimals);
+      setTokenMenuVisibility("visible")
+    } else {
+      setCustTokenSymbol('');
+      setCustTokenName('');
+      setCustTokenBalance('');
+      setTokenMenuVisibility("hidden")
     }
-  }, 7777);*/
+    console.log("customtokenaddress", customTokenAddress);
+  }
 
   const connectWallet = (sessionDetails)=>{
     console.log(" 📡 Connecting to Wallet Connect....",sessionDetails)
@@ -224,23 +272,6 @@ console.log("gas price tx: ", gasPrice)
 
       setConnected(true)
       setWallectConnectConnectorSession(connector.session)
-
-      /* payload:
-      {
-        id: 1,
-        jsonrpc: '2.0'.
-        method: 'session_request',
-        params: [{
-          peerId: '15d8b6a3-15bd-493e-9358-111e3a4e6ee4',
-          peerMeta: {
-            name: "WalletConnect Example",
-            description: "Try out WalletConnect v1.0",
-            icons: ["https://example.walletconnect.org/favicon.ico"],
-            url: "https://example.walletconnect.org"
-          }
-        }]
-      }
-      */
     });
 
     // Subscribe to call requests
@@ -250,36 +281,6 @@ console.log("gas price tx: ", gasPrice)
       }
 
       console.log("REQUEST PERMISSION TO:",payload,payload.params[0])
-      // Handle Call Request
-      //console.log("SETTING TO",payload.params[0].to)
-
-      //setWalletConnectTx(true)
-
-      //setToAddress(payload.params[0].to)
-      //setData(payload.params[0].data?payload.params[0].data:"0x0000")
-
-      //let bigNumber = ethers.BigNumber.from(payload.params[0].value)
-      //console.log("bigNumber",bigNumber)
-
-      //let newAmount = ethers.utils.formatEther(bigNumber)
-      //console.log("newAmount",newAmount)
-      //if(props.price){
-      //  newAmount = newAmount.div(props.price)
-      //}
-      //setAmount(newAmount)
-
-      /* payload:
-      {
-        id: 1,
-        jsonrpc: '2.0'.
-        method: 'eth_sign',
-        params: [
-          "0xbc28ea04101f03ea7a94c1379bc3ab32e65e62d3",
-          "My email is john@doe.com - 1537836206101"
-        ]
-      }
-      */
-
 
       //setWalletModalData({payload:payload,connector: connector})
       if (payload.method === 'eth_sendTransaction') {
@@ -337,14 +338,8 @@ console.log("gas price tx: ", gasPrice)
             });
         }
         else console.log("signTypedData payloads only work for token approvals");
-
       }
 
-      //setIsWalletModalVisible(true)
-      //if(payload.method == "personal_sign"){
-      //  console.log("SIGNING A MESSAGE!!!")
-        //const msg = payload.params[0]
-      //}
     });
 
     connector.on("disconnect", (error, payload) => {
@@ -420,24 +415,6 @@ console.log("gas price tx: ", gasPrice)
       }
     }
   }, [injectedProvider, localProvider]);
-
-
-  /*
-  setTimeout(()=>{
-    if(!cachedNetwork){
-      if(balance==0){
-        checkBalances(address)
-      }
-    }
-  },1777)
-  setTimeout(()=>{
-    if(!cachedNetwork){
-      if(balance==0){
-        checkBalances(address)
-      }
-    }
-  },3777)
-*/
 
   // Just plug in different 🛰 providers to get your balance on different chains:
   const yourMainnetBalance = useBalance(mainnetProvider, contractAddress);
@@ -560,171 +537,13 @@ console.log("gas price tx: ", gasPrice)
       </div>
     );
   }
-/*
-  const options = [];
-  for (const id in NETWORKS) {
-    options.push(
-      <Select.Option key={id} value={NETWORKS[id].name}>
-        <span style={{ color: NETWORKS[id].color, fontSize: 24 }}>{NETWORKS[id].name}</span>
-      </Select.Option>,
-    );
-  }
 
-  const networkSelect = (
-    <Select
-      size="large"
-      defaultValue={targetNetwork.name}
-      style={{ textAlign: "left", width: 170, fontSize: 30 }}
-      onChange={value => {
-        if (targetNetwork.chainId != NETWORKS[value].chainId) {
-          window.localStorage.setItem("network", value);
-          setTimeout(() => {
-            window.location.reload();
-          }, 1);
-        }
-      }}
-    >
-      {options}
-    </Select>
-  );
-*/
-
-
-  const [route, setRoute] = useState();
-  useEffect(() => {
-    setRoute(window.location.pathname);
-  }, [setRoute]);
-/*
-  let faucetHint = "";
-  const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name == "localhost";
-
-  const [faucetClicked, setFaucetClicked] = useState(false);
-  if (
-    !faucetClicked &&
-    localProvider &&
-    localProvider._network &&
-    localProvider._network.chainId == 31337 &&
-    yourLocalBalance &&
-    formatEther(yourLocalBalance) <= 0
-  ) {
-    faucetHint = (
-      <div style={{ padding: 16 }}>
-        <Button
-          type="primary"
-          onClick={() => {
-            faucetTx({
-              to: address,
-              value: parseEther("0.01"),
-            });
-            setFaucetClicked(true);
-          }}
-        >
-          💰 Grab funds from the faucet ⛽️
-        </Button>
-      </div>
-    );
-  }
-  */
-
-  let startingAddress = "";
-  if (window.location.pathname) {
-    const incoming = window.location.pathname.replace("/", "");
-    if (incoming && ethers.utils.isAddress(incoming)) {
-      startingAddress = incoming;
-      window.history.pushState({}, "", "/");
-    }
-
-    /* let rawPK
-    if(incomingPK.length===64||incomingPK.length===66){
-      console.log("🔑 Incoming Private Key...");
-      rawPK=incomingPK
-      burnerConfig.privateKey = rawPK
-      window.history.pushState({},"", "/");
-      let currentPrivateKey = window.localStorage.getItem("metaPrivateKey");
-      if(currentPrivateKey && currentPrivateKey!==rawPK){
-        window.localStorage.setItem("metaPrivateKey_backup"+Date.now(),currentPrivateKey);
-      }
-      window.localStorage.setItem("metaPrivateKey",rawPK);
-    } */
-  }
-  // console.log("startingAddress",startingAddress)
-  const [amount, setAmount] = useLocalStorage("amount", "0");
-  const [data, setData] = useLocalStorage("data","0x");
-  const [to, setTo] = useLocalStorage("to");
-  const [toAddress, setToAddress] = useLocalStorage("punkWalletToAddress", startingAddress, 120000);
-
-  const [walletConnectTx, setWalletConnectTx] = useState();
-
-  const [loading, setLoading] = useState(false);
-
-  const [depositing, setDepositing] = useState();
-  const [depositAmount, setDepositAmount] = useState();
-  const [customTokenAddress, setCustomTokenAddress] = useState();
-  const [custTokenSymbol, setCustTokenSymbol] = useState();
-  const [custTokenName, setCustTokenName] = useState();
-  const [custTokenBalance, setCustTokenBalance] = useState();
-  const [tokDecimals, setTokDecimals] = useState();
-  const [transferToAddress, setTransferToAddress] = useState();
-  const [transferAmount, setTransferAmount] = useState();
-  const [formattedTransferAmount, setFormattedTransferAmount] = useState();
-  const [methodName, setMethodName] = useState("transfer");
-  const [tokenMenuVisibility, setTokenMenuVisibility] = useState("hidden");
-
-  const handleTransferTo = async (e) => {
-    let enteredTo = e.target.value;
-    if (ethers.utils.isAddress(enteredTo)) {
-      setTransferToAddress(enteredTo)
-
-    } else setTransferToAddress('');
-  }
-
-  const handleTransferAmount = async (e) => {
-    let enteredAmount = e.target.value;
-    setTransferAmount(enteredAmount)
-    let enteredAmountFormatted = ethers.utils.parseUnits(enteredAmount, tokDecimals);
-    setFormattedTransferAmount(enteredAmountFormatted);
-  }
-
-  const handleCustomToken = async (e) => {
-    let enteredAddress = e.target.value;
-    if (ethers.utils.isAddress(enteredAddress)) {
-      const customContract = new ethers.Contract(enteredAddress, ERC20.abi, localProvider);
-      setCustomTokenAddress(enteredAddress)
-      const newCustTokenSymbol = await customContract.functions.symbol();
-      const newCustTokenName = await customContract.functions.name();
-      const newCustTokenBalance = await customContract.functions.balanceOf(contractAddress);
-      const newTokDecimals = await customContract.functions.decimals();
-      const newCustTokBalFormatted = ethers.utils.formatUnits(newCustTokenBalance[0], newTokDecimals);
-      console.log('tokBal', newCustTokBalFormatted);
-      setCustTokenSymbol(newCustTokenSymbol);
-      setCustTokenName(newCustTokenName);
-      setCustTokenBalance(newCustTokBalFormatted);
-      setTokDecimals(newTokDecimals);
-      setTokenMenuVisibility("visible")
-    } else {
-      setCustTokenSymbol('');
-      setCustTokenName('');
-      setCustTokenBalance('');
-      setTokenMenuVisibility("hidden")
-    }
-    console.log("customtokenaddress", customTokenAddress);
-  }
-
-  const walletDisplay =
-    web3Modal && web3Modal.cachedProvider ? (
-      ""
-    ) : (
-      <Wallet address={contractAddress} provider={userProviderAndSigner.provider} ensProvider={mainnetProvider} price={price} />
-    );
 
   return (
     <div className="CustomTransaction">
       <div className="site-page-header-ghost-wrapper">
         <h1>ERC20 Interactions</h1>
       </div>
-
-      <div>add token list here</div>
-      {/* will work on this later <Complete />*/}
 
       <div style={{ clear: "both", width: 360, margin: "auto" ,marginTop:12, position:"relative" }}>
         <Input
@@ -741,7 +560,7 @@ console.log("gas price tx: ", gasPrice)
         {custTokenBalance ? <>Balance: &nbsp; {custTokenBalance}</> : ''}
       </div>
 
-      <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:24, visibility:tokenMenuVisibility }}>
+      <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:12, visibility:tokenMenuVisibility }}>
         <div style={{margin:8,padding:8}}>
           <Select value={methodName} style={{ width: "100%" }} onChange={ setMethodName }>
             <Option key="transfer">Transfer</Option>
@@ -787,23 +606,6 @@ console.log("gas price tx: ", gasPrice)
         </div>
       </div>
 
-      {/*}<div>
-        <Space>
-          Transfer
-          <Input
-            placeholder={"To"}
-
-          /><Input
-            placeholder={"Amount"}
-
-          />
-          <Popconfirm title="Are you sure?" okText="Yes" cancelText="No">
-            <Button>Confirm</Button>
-          </Popconfirm>
-        </Space>
-      </div>*/}
-
-
 
       <div style={{ clear: "both", width: 500, margin: "auto" ,marginTop:48, position:"relative"}}>
         {connected?<span style={{cursor:"pointer",padding:8,fontSize:30,position:"absolute",top:-16,left:28}}>✅</span>:""}
@@ -842,58 +644,7 @@ console.log("gas price tx: ", gasPrice)
           <span style={{ marginRight: 8 }}>👛</span> Inventory
         </Button>
 
-
-
       </div>
-
-
-      { targetNetwork.name=="ethereum" ? <div style={{ zIndex: -1, padding: 64, opacity: 0.5, fontSize: 12 }}>
-        {
-          depositing ? <div style={{width:200,margin:"auto"}}>
-            <EtherInput
-              /*price={price || targetNetwork.price}*/
-              value={depositAmount}
-              token={targetNetwork.token || "ETH"}
-              onChange={value => {
-                setDepositAmount(value);
-              }}
-            />
-            <Button
-              style={{ margin:8, marginTop: 16 }}
-              onClick={() => {
-                console.log("DEPOSITING",depositAmount)
-                tx({
-                  to: "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
-                  value: ethers.utils.parseEther(depositAmount),
-                  gasLimit: 175000,
-                  gasPrice: gasPrice,
-                  data: "0xb1a1a882000000000000000000000000000000000000000000000000000000000013d62000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
-                })
-                setDepositAmount()
-                setDepositing()
-              }}
-            >
-              <span style={{ marginRight: 8 }}>🔴</span>Deposit
-            </Button>
-          </div>:<div>
-            <Button
-              style={{ margin:8, marginTop: 16 }}
-              onClick={() => {
-                setDepositing(true)
-                /*tx({
-                  to: "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
-                  value: ethers.utils.parseEther("0.01"),
-                  gasLimit: 175000,
-                  gasPrice: gasPrice,
-                  data: "0xb1a1a882000000000000000000000000000000000000000000000000000000000013d62000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000"
-                })*/
-              }}
-            >
-              <span style={{ marginRight: 8 }}>🔴</span>Deposit to OE
-            </Button>
-          </div>
-        }
-      </div> : ""}
 
 
       <div style={{ zIndex: -1, padding: 12, opacity: 0.5, fontSize: 12 }}>
@@ -928,38 +679,7 @@ console.log("gas price tx: ", gasPrice)
         </Button>
       </div>
 
-{/*
 
-      <Modal title={walletModalData && walletModalData.payload && walletModalData.payload.method} visible={isWalletModalVisible} onOk={handleOk} onCancel={handleCancel}>
-       <pre>
-        {walletModalData && walletModalData.payload && JSON.stringify(walletModalData.payload.params, null, 2)}
-       </pre>
-     </Modal>
-  */}
-
-
-      {/* 🗺 Extra UI like gas price, eth price, faucet, and support:
-      <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
-        <Row align="middle" gutter={[16, 16]}>
-          <Col span={12}>
-            <Ramp price={price} address={address} networks={NETWORKS} />
-          </Col>
-
-          {targetNetwork.name=="arbitrum"||targetNetwork.name=="gnosis"||targetNetwork.name=="optimism"||targetNetwork.name=="polygon"?"":<Col span={12} style={{ textAlign: "center", opacity: 0.8 }}>
-            <GasGauge gasPrice={gasPrice} />
-          </Col>}
-        </Row>
-
-        <Row align="middle" gutter={[4, 4]}>
-          <Col span={24}>
-            {faucetAvailable ? (
-              <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
-            ) : (
-              ""
-            )}
-          </Col>
-        </Row>
-      </div>*/}
     </div>
   );
 }

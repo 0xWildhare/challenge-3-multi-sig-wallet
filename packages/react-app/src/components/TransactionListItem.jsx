@@ -3,7 +3,8 @@ import { Button, List } from "antd";
 import { Address, Balance, Blockie, TransactionDetailsModal } from "../components";
 import { EllipsisOutlined } from "@ant-design/icons";
 import { parseEther, formatEther } from "@ethersproject/units";
-
+import ERC20 from "../contracts/ERC20.json";
+const { ethers } = require("ethers");
 //@TODO does not need to show value (or "to" but maybe thats ok) when adding or removing signers (i.e. value is 0)
 
 const TransactionListItem = function ({item, mainnetProvider, blockExplorer, price, readContracts, contractName, children}) {
@@ -18,17 +19,31 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
     setIsModalVisible(false);
   };
 
+  let iface = new ethers.utils.Interface(ERC20.abi);
+
   item = item.args ? item.args : item;
   console.log("🔥🔥🔥🔥", item)
   let txnData;
 
   if(item.data != "0x") {
-    try {
-      txnData = readContracts[contractName].interface.parseTransaction(item);
-    } catch (error){
-      console.log("ERROR", error)
+    if (item.to === item.address) {
+      try {
+        txnData = readContracts[contractName].interface.parseTransaction(item);
+        console.log("txndata:", txnData);
+      } catch (error){
+        console.log("ERROR", error)
+      }
+    } else {
+      try {
+        txnData = iface.parseTransaction(item);
+        console.log("txndata:", txnData);
+      } catch (error){
+        console.log("ERROR", error)
+      }
+
     }
   }
+
   return <>
     <TransactionDetailsModal
       visible={isModalVisible}
