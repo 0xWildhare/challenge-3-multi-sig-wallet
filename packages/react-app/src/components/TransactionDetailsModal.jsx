@@ -36,21 +36,13 @@ const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, p
                 </div>
               );
             }
-            let displayAmount;
-            if (element.type === "uint256") {
-              let displyAmount;
-              try {
-                displayAmount = txnInfo.args[index].toNumber()
-              } catch(error) {
-                displayAmount = formatEther(txnInfo.args[index])
-              }
               return (
                 <p key={element.name}>
-                  { element.name === "value" ? <><b>{element.name} : </b> <Balance fontSize={16} balance={txnInfo.args[index]} dollarMultiplier={price} /> </> : <><b>{element.name} : </b> {txnInfo.args[index] &&  displayAmount /*txnInfo.args[index].toNumber()*/}</>}
+                  { element.name === "value" ? <><b>{element.name} : </b> <Balance fontSize={16} balance={txnInfo.args[index]} dollarMultiplier={price} /> </> : element.name === "_value" ? <><b>{element.name} : </b> {txnInfo.args[index] && formatEther(txnInfo.args[index])} </> : <><b>{element.name} : </b> {txnInfo.args[index] &&  txnInfo.args[index].toNumber()}</>}
                 </p>
               );
             }
-          })}
+          )}
           <p>
             <b>SigHash : &nbsp;</b>
             {txnInfo.sighash}
