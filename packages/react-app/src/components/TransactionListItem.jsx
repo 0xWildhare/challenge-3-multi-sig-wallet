@@ -7,7 +7,7 @@ import ERC20 from "../contracts/ERC20.json";
 const { ethers } = require("ethers");
 //@TODO does not need to show value (or "to" but maybe thats ok) when adding or removing signers (i.e. value is 0)
 
-const TransactionListItem = function ({item, mainnetProvider, blockExplorer, price, readContracts, contractName, children}) {
+const TransactionListItem = function ({item, mainnetProvider, blockExplorer, price, readContracts, contractName, children, localProvider}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [txnInfo, setTxnInfo] = useState(null);
 
@@ -24,6 +24,8 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
   item = item.args ? item.args : item;
   console.log("🔥🔥🔥🔥", item)
   let txnData;
+  let customContract;
+  let decimals;
 
   if(item.data != "0x") {
     if (item.to === readContracts[contractName].address) {
@@ -36,11 +38,17 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
     } else {
       try {
         txnData = iface.parseTransaction(item);
+        customContract = new ethers.Contract(item.to, ERC20.abi, localProvider);
+        handleDecimals();
         console.log("txndata2:", txnData);
       } catch (error){
         console.log("ERROR", error)
     }
    }
+  }
+
+  const handleDecimals = async () => {
+    decimals = await customContract.functions.decimals();
   }
 
   return <>
@@ -79,7 +87,39 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
         <Blockie size={4} scale={8} address={item.hash} /> {item.hash.substr(0, 6)}
       </span>
       <Address address={item.to} ensProvider={mainnetProvider} blockExplorer={blockExplorer} fontSize={16} />
-      <Balance balance={item.value ? item.value : parseEther("" + parseFloat(item.amount).toFixed(12))} dollarMultiplier={price} />
+
+      {txnData ?
+        txnData.functionFragment.name === "addSigner" ?
+        <span
+          style={{
+            verticalAlign: "middle",
+            fontSize: 24,
+            padding: 8,
+          }}
+        >
+          +1
+        </span> :
+        txnData.functionFragment.name === "removeSigner" ?
+        <span
+          style={{
+            verticalAlign: "middle",
+            fontSize: 24,
+            padding: 8,
+          }}
+        >
+          -1
+        </span> :
+        //txnData.functionFragment.name === "approve" || txnData.functionFragment.name === "transfer" ?
+        <span
+          style={{
+            verticalAlign: "middle",
+            fontSize: 24,
+            padding: 8,
+          }}
+        >
+          {"wtf" /*+ ethers.utils.parseUnits(item.value, decimals)*/ }
+        </span> :
+        <Balance balance={item.value ? item.value : parseEther("" + parseFloat(item.amount).toFixed(12))} dollarMultiplier={price} />}
       <>
         {
           children

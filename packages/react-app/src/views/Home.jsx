@@ -71,6 +71,7 @@ function Home({
                   price={price}
                   readContracts={readContracts}
                   contractName={contractName}
+                  localProvider={localProvider}
                 />
             </>
           );
