@@ -21,8 +21,9 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
 
   let iface = new ethers.utils.Interface(ERC20.abi);
 
-  item = item.args ? item.args : item;
   console.log("🔥🔥🔥🔥", item)
+  item = item.args ? item.args : item;
+
   let txnData;
   let customContract;
   let decimals;
@@ -49,11 +50,28 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
         txnData = {
           functionFragment: {
             name:"smart contract call",
-            inputs: []
+            inputs: [
+              {
+                name: "contract",
+                type: "address"
+              },
+              {
+                name: "data",
+                type: "string"
+              },
+              {
+                name: "hash",
+                type: "string"
+              }
+            ]
           },
           args: [
-            item.to
-          ]
+            item.to,
+            item.data,
+            item.hash
+          ],
+          signature: "unknown",
+          sighash: item.data.substring(0,10)
         }
         console.log("ERROR", error)
     }

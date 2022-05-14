@@ -25,7 +25,7 @@ const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, p
             <b>Function Signature :</b> {txnInfo.signature}
           </p>
           <h4>Arguments :&nbsp;</h4>
-          {console.log("Inputs:", txnInfo.functionFragment.inputs)}
+          {console.log("InputsAAA:", txnInfo.functionFragment.inputs)}
           {txnInfo.functionFragment.inputs.map((element, index) => {
             if (element.type === "address") {
               console.log("inputs2",txnInfo.args[index]);
@@ -38,7 +38,13 @@ const TransactionDetailsModal = function ({visible, handleOk, mainnetProvider, p
             }
               return (
                 <p key={element.name}>
-                  { element.name === "value" ? <><b>{element.name} : </b> <Balance fontSize={16} balance={txnInfo.args[index]} dollarMultiplier={price} /> </> : element.name === "_value" ? <><b>{element.name} : </b> {txnInfo.args[index] && formatEther(txnInfo.args[index])} </> : <><b>{element.name} : </b> {txnInfo.args[index] &&  txnInfo.args[index].toNumber()}</>}
+                  { element.name === "value" ?
+                  <><b>{element.name} : </b> <Balance fontSize={16} balance={txnInfo.args[index]} dollarMultiplier={price} /> </>
+                  : element.name === "_value" ?
+                  <><b>{element.name} : </b> {txnInfo.args[index] && formatEther(txnInfo.args[index])} </>
+                  : element.name === "data" || element.name === "hash" ?
+                  <><b>{element.name} : </b> {txnInfo.args[index]} </>
+                  : <><b>{element.name} : </b> {txnInfo.args[index] &&  txnInfo.args[index].toNumber()}</>}
                 </p>
               );
             }
