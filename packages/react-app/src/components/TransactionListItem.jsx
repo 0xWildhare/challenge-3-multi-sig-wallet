@@ -27,6 +27,10 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
   let customContract;
   let decimals;
 
+  const handleDecimals = async () => {
+    decimals = await customContract.functions.decimals();
+  }
+
   if(item.data != "0x") {
     if (item.to === readContracts[contractName].address) {
       try {
@@ -42,14 +46,21 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
         handleDecimals();
         console.log("txndata2:", txnData);
       } catch (error){
+        txnData = {
+          functionFragment: {
+            name:"smart contract call",
+            inputs: []
+          },
+          args: [
+            item.to
+          ]
+        }
         console.log("ERROR", error)
     }
    }
   }
 
-  const handleDecimals = async () => {
-    decimals = await customContract.functions.decimals();
-  }
+
 
   return <>
     <TransactionDetailsModal
@@ -97,7 +108,7 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
             padding: 8,
           }}
         >
-          +1
+          +signer
         </span> :
         txnData.functionFragment.name === "removeSigner" ?
         <span
@@ -107,18 +118,30 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
             padding: 8,
           }}
         >
-          -1
+          -signer
         </span> :
-        //txnData.functionFragment.name === "approve" || txnData.functionFragment.name === "transfer" ?
+        txnData.functionFragment.name === "approve" || txnData.functionFragment.name === "transfer" ?
         <span
           style={{
             verticalAlign: "middle",
             fontSize: 24,
             padding: 8,
+            width: 95,
+            overflow: "hidden"
           }}
         >
-          {"wtf" /*+ ethers.utils.parseUnits(item.value, decimals)*/ }
+          { parseFloat(ethers.utils.formatUnits(txnData.args[1], decimals)) }
         </span> :
+        <span
+          style={{
+            verticalAlign: "middle",
+            fontSize: 24,
+            padding: 8,
+            width: 95,
+          }}
+        >
+
+        </span>  :
         <Balance balance={item.value ? item.value : parseEther("" + parseFloat(item.amount).toFixed(12))} dollarMultiplier={price} />}
       <>
         {
