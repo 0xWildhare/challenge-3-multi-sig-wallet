@@ -3,8 +3,7 @@ import { useHistory } from "react-router-dom";
 import { Button, Select, List, Input, Spin } from "antd";
 import { parseEther } from "@ethersproject/units";
 import { Address, AddressInput, Balance, EtherInput, Blockie } from "../components";
-//import Gun from "gun";
-//const gun = Gun();
+
 
 const { Option } = Select;
 const { ethers } = require("ethers");
@@ -22,7 +21,8 @@ export default function CreateTransaction({
   price,
   tx,
   readContracts,
-  nonce
+  nonce,
+  gun,
 }) {
   const history = useHistory();
 
@@ -220,7 +220,7 @@ export default function CreateTransaction({
               console.log("isOwner", isOwner);
 
               if (isOwner) {
-                const res = await axios.post(poolServerUrl, {
+                /*const res = await axios.post(poolServerUrl, {
                   chainId: localProvider._network.chainId,
                   address: readContracts[contractName].address,
                   nonce: nonce.toNumber(),
@@ -230,18 +230,31 @@ export default function CreateTransaction({
                   hash: newHash,
                   signatures: [signature],
                   signers: [recover],
-                });
+                });*/
+                const newTx = gun.get(newHash).put({
+                  chainId: localProvider._network.chainId,
+                  address: readContracts[contractName].address,
+                  nonce: nonce.toNumber(),
+                  to,
+                  amount,
+                  data,
+                  hash: newHash,
+                  signatures: signature,
+                  signers: recover,
+                })
+                gun.get(readContracts[contractName].address+"_"+localProvider._network.chainId).set(newTx);
+
                 // IF SIG IS VALUE ETC END TO SERVER AND SERVER VERIFIES SIG IS RIGHT AND IS SIGNER BEFORE ADDING TY
 
-                //gun.get(readContracts[contractName].address+"_"+localProvider._network.chainId).set(res)
-
-                console.log("RESULT", res.data);
+                //console.log("RESULT", res.data);
+                newTx.once((data)=>{console.log("RESULT", data)});
 
                 setTimeout(() => {
                   history.push("/pool");
                 }, 2777);
 
-                setResult(res.data.hash);
+                //setResult(res.data.hash);
+                newTx.once((data)=>{setResult(data.hash)});
                 setTo();
                 setAmount("0");
                 setData("0x");

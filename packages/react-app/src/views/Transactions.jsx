@@ -24,38 +24,59 @@ export default function Transactions({
   readContracts,
   writeContracts,
   blockExplorer,
+  gun
 }) {
   const [transactions, setTransactions] = useState();
-
   const contractAddress = readContracts[contractName] ? readContracts[contractName].address : '';
-console.log("LOCALPROVIDER: ", localProvider);
+  const totalTransactions = [];
+  let txs;
+  if(readContracts && readContracts[contractName] && localProvider && localProvider._network && localProvider._network.chainId){
+    txs = gun.get(contractAddress+"_"+(localProvider && localProvider._network && localProvider._network.chainId));
+    txs.map().once(async (transaction) => {
+      totalTransactions.push(transaction);
+    })
+    console.log("gundb txs",totalTransactions)
+  }
 
   usePoller(() => {
     const getTransactions = async () => {
       if (true) console.log("🛰 Requesting Transaction List");
-      console.log("POOLSERVER: ", poolServerUrl);
-      console.log("contractAddress: ", contractAddress);
-      console.log("READCONTRACTS: ", readContracts[contractName])
-      const localChainId = localProvider && localProvider._network ? localProvider._network.chainId : '';
+      const newTransactions = [];
+
+      for (const i in totalTransactions) {
+        // console.log("look through signatures of ",totalTransactions[i])
+        const thisNonce = ethers.BigNumber.from(totalTransactions[i].nonce);
+        if (thisNonce && nonce && thisNonce.gte(nonce)) {
+          const validSignatures = [];
+          const signatures = totalTransactions[i].signatures.split(",");
+          for (const s in signatures) {
+            // console.log("RECOVER:",signatures[s],totalTransactions[i].hash)
+            const signer = await readContracts[contractName].recover(totalTransactions[i].hash, signatures[s]);
+            const isOwner = await readContracts[contractName].isOwner(signer);
+            if (signer && isOwner) {
+              validSignatures.push({ signer, signature: signatures[s] });
+            }
+      /*const localChainId = localProvider && localProvider._network ? localProvider._network.chainId : '';
       const res = await axios.get(
         poolServerUrl + contractAddress + "_" + localChainId,
       );
       const newTransactions = [];
       for (const i in res.data) {
-        // console.log("look through signatures of ",res.data[i])
+         console.log("look through signatures of ",res.data[i])
         const thisNonce = ethers.BigNumber.from(res.data[i].nonce);
         if (thisNonce && nonce && thisNonce.gte(nonce)) {
           const validSignatures = [];
           for (const s in res.data[i].signatures) {
-            // console.log("RECOVER:",res.data[i].signatures[s],res.data[i].hash)
+            console.log("RECOVER:",res.data[i].signatures[s],res.data[i].hash)
             const signer = await readContracts[contractName].recover(res.data[i].hash, res.data[i].signatures[s]);
             const isOwner = await readContracts[contractName].isOwner(signer);
             if (signer && isOwner) {
               validSignatures.push({ signer, signature: res.data[i].signatures[s] });
-            }
+            }*/
           }
-          const update = { ...res.data[i], validSignatures };
-          // console.log("update",update)
+          const update = { ...totalTransactions[i], validSignatures };
+          //const update = { ...res.data[i], validSignatures };
+          //console.log("update",update)
           newTransactions.push(update);
         }
       }
@@ -145,14 +166,21 @@ console.log("LOCALPROVIDER: ", localProvider);
 
                   if (isOwner) {
                     const [finalSigList, finalSigners] = await getSortedSigList(
-                      [...item.signatures, signature],
+                      [...item.signatures.split(","), signature],
                       newHash,
                     );
-                    const res = await axios.post(poolServerUrl, {
-                      ...item,
+                    const joinedSigList = finalSigList.join()
+                    const joinedFinalSigners = finalSigners.join()
+                    const {validSignatures, ...simpleItem} = item
+                    /*const res = await axios.post(poolServerUrl, {
+                      ...item,*/
+                      const newItem = {
+                      ...simpleItem,
                       signatures: finalSigList,
                       signers: finalSigners,
-                    });
+                    };
+                    const newSigTx = gun.get(newItem.hash+"newSig").put(newItem)
+                    txs.set(newSigTx)
                   }
 
                   // tx( writeContracts[contractName].executeTransaction(item.to,parseEther(""+parseFloat(item.amount).toFixed(12)), item.data, item.signatures))

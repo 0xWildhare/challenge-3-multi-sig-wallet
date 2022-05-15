@@ -40,6 +40,12 @@ import {
   Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
 
+import Gun from "gun";
+//TODO: what does the "peers:" notation mean - need to research how this works
+var gun = Gun({
+    peers: ['http:localhost:8000/gun'] // Put your own relay node here. make sure you run yarn gun if you're on local
+  }); //('http://gunjs.herokuapp.com/gun') // or use your own GUN relay
+
 const { ethers } = require("ethers");
 /*
     Welcome to 🏗 scaffold-eth !
@@ -355,6 +361,7 @@ console.log("Injected", injectedProvider);
             tx={tx}
             readContracts={readContracts}
             nonce={nonce}
+            gun={gun}
           />
         </Route>
         <Route path="/custom">
@@ -384,6 +391,7 @@ console.log("Injected", injectedProvider);
             nonce={nonce}
             userSigner={userSigner}
             blockExplorer={blockExplorer}
+            gun={gun}
           />
         </Route>
         <Route path="/owners">

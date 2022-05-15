@@ -16,7 +16,7 @@ export default function Owners({contractName, ownerEvents, signaturesRequired, a
   const [newOwner, setNewOwner] = useLocalStorage("newOwner");
   const [newSignaturesRequired, setNewSignaturesRequired] = useLocalStorage("newSignaturesRequired");
   const [data, setData] = useLocalStorage("data","0x");
-
+console.log("ownerArgs:", ownerEvents)
 //@TODO when the create button is clicked, this can skip the create page and go straight to transactions
 
   return (
@@ -28,7 +28,7 @@ export default function Owners({contractName, ownerEvents, signaturesRequired, a
         dataSource={ownerEvents}
         renderItem={(item) => {
           return (
-            <List.Item key={"owner_"+item.args[0]}>
+            <List.Item key={"owner_"+item.transactionHash}>
             <Address
               address={item.args[0]}
               ensProvider={mainnetProvider}
