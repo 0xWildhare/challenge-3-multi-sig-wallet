@@ -39,8 +39,8 @@ export default function CreateTransaction({
   const [data, setData] = useLocalStorage("data", "0x");
   const [isCreateTxnEnabled, setCreateTxnEnabled] = useState(true);
   const [decodedDataState, setDecodedData] = useState();
-  //const [methodName, setMethodName] = useState();
-  //const [selectDisabled, setSelectDisabled] = useState(false);
+  const [methodName, setMethodName] = useState();
+  const [selectDisabled, setSelectDisabled] = useState(false);
   let decodedData = "";
 
   const [result, setResult] = useState();
@@ -62,7 +62,7 @@ export default function CreateTransaction({
         // decodedDataObject = readContracts ? await readContracts[contractName].interface.parseTransaction({ data }) : "";
         // console.log("decodedDataObject", decodedDataObject);
         // setCreateTxnEnabled(true);
-        /*
+
         if(decodedDataObject.signature === "addSigner(address,uint256)"){
           setMethodName("addSigner")
           setSelectDisabled(true)
@@ -70,7 +70,7 @@ export default function CreateTransaction({
           setMethodName("removeSigner")
           setSelectDisabled(true)
         }
-        */
+
         decodedData = (
           <div>
             <div
