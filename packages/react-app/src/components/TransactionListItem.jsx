@@ -10,6 +10,8 @@ const { ethers } = require("ethers");
 const TransactionListItem = function ({item, mainnetProvider, blockExplorer, price, readContracts, contractName, children, localProvider}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [txnInfo, setTxnInfo] = useState(null);
+  const [decimals, setDecimals] = useState(18);
+  const [tokenSymbol, setTokenSymbol] = useState("");
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -26,11 +28,15 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
 
   let txnData;
   let customContract;
-  let decimals;
+
 
   const handleDecimals = async () => {
-    decimals = await customContract.functions.decimals();
+    const newDecimals = await customContract.functions.decimals();
+    setDecimals(newDecimals);
+    const newSymbol = await customContract.functions.symbol();
+    setTokenSymbol(newSymbol);
   }
+
 
   if(item.data != "0x") {
     if (item.to === readContracts[contractName].address) {
@@ -144,11 +150,12 @@ const TransactionListItem = function ({item, mainnetProvider, blockExplorer, pri
             verticalAlign: "middle",
             fontSize: 24,
             padding: 8,
-            width: 95,
+
             overflow: "hidden"
           }}
         >
-          { parseFloat(ethers.utils.formatUnits(txnData.args[1], decimals)) }
+          { parseFloat(ethers.utils.formatUnits(txnData.args[1], decimals)).toPrecision(3) }
+          &nbsp;{ tokenSymbol }
         </span> :
         <span
           style={{
