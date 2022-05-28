@@ -23,24 +23,27 @@ contract MultiSig {
     uint public signaturesRequired;
     uint public nonce;
     uint public chainId;
+    address[] public owners;
 
-    constructor(uint256 _chainId, address[] memory _owners, uint _signaturesRequired) {
+    constructor(uint256 _chainId, address[] memory _owners, uint _signaturesRequired, address _factory) payable {
         require(_signaturesRequired > 0, "constructor: must be non-zero sigs required");
         signaturesRequired = _signaturesRequired;
+        multiSigFactory = MultiSigFactory(_factory);
         for (uint i = 0; i < _owners.length; i++) {
             address owner = _owners[i];
             require(owner != address(0), "constructor: zero address");
             require(!isOwner[owner], "constructor: owner not unique");
             isOwner[owner] = true;
+            owners.push(owner);
             emit Owner(owner, isOwner[owner]);
         }
         chainId = _chainId;
     }
 
-    modifier onlySelf() {
-        require(msg.sender == address(this), "Not Self");
-        _;
-    }
+        modifier onlySelf() {
+            require(msg.sender == address(this), "Not Self");
+            _;
+        }
 
     function addSigner(address newSigner, uint256 newSignaturesRequired) public onlySelf {
         require(newSigner != address(0), "addSigner: zero address");
