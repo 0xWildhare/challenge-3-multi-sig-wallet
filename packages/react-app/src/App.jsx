@@ -29,7 +29,7 @@ import {
 } from "./components";
 import { NETWORKS, ALCHEMY_KEY } from "./constants";
 import externalContracts from "./contracts/external_contracts";
-
+import multiSigWallet from "./contracts/multiSigWallet.json";
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import {
@@ -50,6 +50,8 @@ var gun = Gun({
 const { ethers } = require("ethers");
 
 const { Option } = Select;
+
+const multiSigABI = multiSigWallet.abi;
 /*
     Welcome to 🏗 scaffold-eth !
 
@@ -228,16 +230,16 @@ console.log("app tx: ", tx)
 
   useEffect(() => {
     async function getContractValues() {
-      const signaturesRequired = await readContracts.multiSig.signaturesRequired();
+      const signaturesRequired = await readContracts.MultiSig.signaturesRequired();
       setSignaturesRequired(signaturesRequired);
 
-      const nonce = await readContracts.multiSig.nonce();
+      const nonce = await readContracts.MultiSig.nonce();
       setNonce(nonce);
     }
     if (currentMultiSigAddress) {
-      readContracts.MultiSig.address = currentMultiSigAddress;
-      writeContracts.MultiSig.address = currentMultiSigAddress;
-
+      readContracts.MultiSig = new ethers.Contract(currentMultiSigAddress, multiSigABI, localProvider);
+      writeContracts.MultiSig = new ethers.Contract(currentMultiSigAddress, multiSigABI, userSigner);
+      //console.log("readContracts", readContracts);
       setContractNameForEvent("multiSig");
       getContractValues();
     }
