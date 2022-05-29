@@ -1,6 +1,6 @@
 // deploy/00_deploy_your_contract.js
 
-const { ethers } = require("ethers");
+const { ethers } = require("hardhat");
 
 const localChainId = "31337";
 
@@ -16,6 +16,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
+  const multiSigFactory = await ethers.getContract("MultiSigFactory", deployer)
+  const multiSigFactory_address = multiSigFactory.address;
 
   await deploy("MultiSig", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
@@ -23,7 +25,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     args: [
       chainId,
       ["0xa53A6fE2d8Ad977aD926C485343Ba39f32D3A3F6"],
-      1
+      1,
+      multiSigFactory_address
     ],
     log: true,
     waitConfirmations: 5,

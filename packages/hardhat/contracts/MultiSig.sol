@@ -12,9 +12,11 @@ pragma solidity >=0.8.0 <0.9.0;
 // pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "./MultiSigFactory.sol";
 
 contract MultiSig {
     using ECDSA for bytes32;
+    MultiSigFactory private multiSigFactory;
 
     event Deposit(address indexed sender, uint amount, uint balance);
     event ExecuteTransaction(address indexed owner, address payable to, uint256 value, bytes data, uint256 nonce, bytes32 hash, bytes result);
