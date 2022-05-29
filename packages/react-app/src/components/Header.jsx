@@ -18,6 +18,6 @@ export default function Header({link, title, subTitle}) {
 
 Header.defaultProps = {
   link: "https://github.com/austintgriffith/scaffold-eth",
-  title: "🏗 scaffold-eth",
-  subTitle: "forkable Ethereum dev stack focused on fast product iteration",
+  title: "🏗 Wildhare MAAS",
+  subTitle: "multisig as a service built with scaffold-eth",
 }

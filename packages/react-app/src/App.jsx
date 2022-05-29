@@ -1,4 +1,4 @@
-import { Button, Col, Menu, Row } from "antd";
+import { Button, Col, Menu, Row, Alert, Select } from "antd";
 import "antd/dist/antd.css";
 import {
   useBalance,
@@ -24,7 +24,8 @@ import {
   NetworkDisplay,
   FaucetHint,
   NetworkSwitch,
-  QRPunkBlockie
+  QRPunkBlockie,
+  CreateMultiSigModal
 } from "./components";
 import { NETWORKS, ALCHEMY_KEY } from "./constants";
 import externalContracts from "./contracts/external_contracts";
@@ -47,6 +48,8 @@ var gun = Gun({
   }); //('http://gunjs.herokuapp.com/gun') // or use your own GUN relay
 
 const { ethers } = require("ethers");
+
+const { Option } = Select;
 /*
     Welcome to 🏗 scaffold-eth !
 
@@ -95,6 +98,16 @@ function App(props) {
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
   const [selectedNetwork, setSelectedNetwork] = useState(networkOptions[0]);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [multiSigs, setMultiSigs] = useState([]);
+  const [currentMultiSigAddress, setCurrentMultiSigAddress] = useState();
+  const [signaturesRequired, setSignaturesRequired] = useState(0);
+  const [nonce, setNonce] = useState(0);
+  const [contractNameForEvent, setContractNameForEvent] = useState();
+  const [ownerEvents, setOwnerEvents] = useState();
+  const [executeTransactionEvents, setExecuteTransactionEvents] = useState();
+
+
   const location = useLocation();
 
   const targetNetwork = NETWORKS[selectedNetwork];
@@ -106,10 +119,7 @@ function App(props) {
   const localProvider = useStaticJsonRPC([
     process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : targetNetwork.rpcUrl,
   ]);
-  const inputToProvider = process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : targetNetwork.rpcUrl;
-  console.log("INPUTTOPROVIDER: ", inputToProvider);
-  console.log("TARGETNETWORKURL: ", targetNetwork.rpcUrl);
-    console.log("LOCALPROVIDERIMMEDIATE:", localProvider);
+
   const mainnetProvider = useStaticJsonRPC(providers);
 
   if (DEBUG) console.log(`Using ${selectedNetwork} network`);
@@ -176,21 +186,74 @@ console.log("app tx: ", tx)
   const writeContracts = useContractLoader(userSigner, contractConfig, localChainId);
 
   const contractName = "MultiSig";
+  const contractAddress = readContracts?.MultiSig?.address;
+
+  const signaturesRequiredContract = useContractReader(readContracts, contractName, "signaturesRequired");
+  const nonceContract = useContractReader(readContracts, contractName, "nonce");
 
   //📟 Listen for broadcast events
-  const executeTransactionEvents = useEventListener(readContracts, contractName, "ExecuteTransaction", localProvider, 1);
-  if(DEBUG) console.log("📟 executeTransactionEvents:", executeTransactionEvents);
+  const ownersMultiSigEvents = useEventListener(readContracts, "MultiSigFactory", "Owners", localProvider, 1);
+  if(DEBUG) console.log("📟 ownersMultiSigEvents:", ownersMultiSigEvents);
 
-  // keep track of a variable from the contract in the local React state:
-  const nonce = useContractReader(readContracts, contractName, "nonce")
-  if(DEBUG) console.log("# nonce:",nonce)
+  useEffect(() => {
+    if (address) {
+      const multiSigsForUser = ownersMultiSigEvents.reduce((filtered, createEvent) => {
+        if (createEvent.args.owners.includes(address) && !filtered.includes(createEvent.args.contractAddress)) {
+          filtered.push(createEvent.args.contractAddress);
+        }
+
+        return filtered;
+      }, []);
+
+      if (multiSigsForUser.length > 0) {
+        const recentMultiSigAddress = multiSigsForUser[multiSigsForUser.length - 1];
+        if (recentMultiSigAddress !== currentMultiSigAddress) setContractNameForEvent(null);
+        setCurrentMultiSigAddress(recentMultiSigAddress);
+        setMultiSigs(multiSigsForUser);
+      }
+    }
+  }, [ownersMultiSigEvents, address]);
+
+  useEffect(() => {
+    setSignaturesRequired(signaturesRequiredContract);
+    setNonce(nonceContract);
+  }, [signaturesRequiredContract, nonceContract]);
 
   //📟 Listen for broadcast events
-  const ownerEvents = useEventListener(readContracts, contractName, "Owner", localProvider, 1);
-  if(DEBUG) console.log("📟 ownerEvents:",ownerEvents)
+  const allExecuteTransactionEvents = useEventListener(currentMultiSigAddress ? readContracts : null, contractNameForEvent, "ExecuteTransaction", localProvider, 1);
+  if(DEBUG) console.log("📟 executeTransactionEvents:", allExecuteTransactionEvents);
 
-  const signaturesRequired = useContractReader(readContracts, contractName, "signaturesRequired")
-  if(DEBUG) console.log("✳️ signaturesRequired:",signaturesRequired)
+  const allOwnerEvents = useEventListener(currentMultiSigAddress ? readContracts : null, contractNameForEvent, "Owner", localProvider, 1);
+  if(DEBUG) console.log("📟 ownerEvents:", allOwnerEvents);
+
+  useEffect(() => {
+    async function getContractValues() {
+      const signaturesRequired = await readContracts.multiSig.signaturesRequired();
+      setSignaturesRequired(signaturesRequired);
+
+      const nonce = await readContracts.multiSig.nonce();
+      setNonce(nonce);
+    }
+    if (currentMultiSigAddress) {
+      readContracts.MultiSig.address = currentMultiSigAddress;
+      writeContracts.MultiSig.address = currentMultiSigAddress;
+
+      setContractNameForEvent("multiSig");
+      getContractValues();
+    }
+  }, [currentMultiSigAddress, readContracts, writeContracts]);
+
+  useEffect(() => {
+    setExecuteTransactionEvents(allExecuteTransactionEvents.filter( contractEvent => contractEvent.address === currentMultiSigAddress));
+    setOwnerEvents(allOwnerEvents.filter( contractEvent => contractEvent.address === currentMultiSigAddress));
+    //setDepositEvents(allDepositEvents.filter( contractEvent => contractEvent.address === currentMultiSigAddress));
+
+  }, [allExecuteTransactionEvents, allOwnerEvents, currentMultiSigAddress]);
+
+
+
+
+
 
 
 
@@ -283,6 +346,15 @@ console.log("Injected", injectedProvider);
 
   const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
 
+  const userHasMultiSigs = currentMultiSigAddress ? true : false;
+
+  const handleMultiSigChange = (value) => {
+    setContractNameForEvent(null);
+    setCurrentMultiSigAddress(value);
+  }
+
+  if(DEBUG) console.log("currentMultiSigAddress:", currentMultiSigAddress);
+
   return (
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
@@ -295,6 +367,27 @@ console.log("Injected", injectedProvider);
         logoutOfWeb3Modal={logoutOfWeb3Modal}
         USE_NETWORK_SELECTOR={USE_NETWORK_SELECTOR}
       />
+      <div style={{ position: "relative" }}>
+        <div style={{ position: "absolute", left: 20 }}>
+          <CreateMultiSigModal
+            price={price}
+            selectedChainId={selectedChainId}
+            mainnetProvider={mainnetProvider}
+            address={address}
+            tx={tx}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
+            contractName={'MultiSigFactory'}
+            isCreateModalVisible={isCreateModalVisible}
+            setIsCreateModalVisible={setIsCreateModalVisible}
+          />
+          <Select value={[currentMultiSigAddress]} style={{ width: 120 }} onChange={handleMultiSigChange}>
+            {multiSigs.map((address, index) => (
+              <Option key={index} value={address}>{address}</Option>
+            ))}
+          </Select>
+        </div>
+      </div>
       <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">Multisig</Link>
