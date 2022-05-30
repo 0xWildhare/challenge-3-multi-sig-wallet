@@ -30,3 +30,4 @@ export { default as SpeedUpTransactions } from "./SpeedUpTransactions";
 export { default as TransactionResponseDisplay } from "./TransactionResponseDisplay";
 export { default as Complete } from "./Complete";
 export { default as CreateMultiSigModal } from "./CreateMultiSigModal";
+export { default as Signers } from "./Signers";

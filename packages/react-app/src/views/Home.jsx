@@ -20,13 +20,15 @@ function Home({
   readContracts,
   price,
   mainnetProvider,
-  blockExplorer
+  blockExplorer,
+  contractAddress,
+  ownerEvents,
+  signaturesRequired,
 }) {
   // you can also use hooks locally in your component of choice
   // in this case, let's keep track of 'purpose' variable from our contract
   const [methodName, setMethodName] = useLocalStorage("addSigner");
-  const contractAddress = readContracts[contractName] ? readContracts[contractName].address : '';
-
+  
   return (
     <div style={{ padding: 32, maxWidth: 750, margin: "auto" }}>
       <div style={{ paddingBottom: 32 }}>

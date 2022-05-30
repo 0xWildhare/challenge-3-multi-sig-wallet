@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useBalance } from "eth-hooks";
-
+import { BigNumber } from 'ethers';
+const zero = BigNumber.from(0);
 const { utils } = require("ethers");
 
-/** 
+/**
   ~ What it does? ~
 
   Displays a balance of given address in ether & dollar
@@ -31,8 +32,26 @@ const { utils } = require("ethers");
 
 export default function Balance(props) {
   const [dollarMode, setDollarMode] = useState(true);
+  const [balance, setBalance] = useState();
+  const {provider, address} = props;
 
-  const balance = useBalance(props.provider, props.address);
+  const balanceContract = useBalance(props.provider, props.address);
+  useEffect(() => {
+    setBalance(balanceContract);
+  }, [balanceContract]);
+
+  useEffect(() => {
+    async function getBalance() {
+      if (provider && address) {
+        const newBalance = await provider.getBalance(address);
+        if (!newBalance.eq(balance ?? zero)) {
+          setBalance(newBalance);
+        }
+      }
+    }
+    getBalance();
+  }, [address, provider]);
+
   let floatBalance = parseFloat("0.00");
   let usingBalance = balance;
 

@@ -14,7 +14,8 @@ packages/react-app/src/contracts/*
 packages/hardhat/cache*
 packages/**/data
 !packages/react-app/src/contracts/contracts.js
-
+!packages/react-app/src/contracts/ERC20.json
+!packages/react-app/src/contracts/multiSigWallet.json
 
 # ts
 packages/hardhat-ts/cache

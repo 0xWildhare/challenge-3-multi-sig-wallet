@@ -249,15 +249,8 @@ console.log("app tx: ", tx)
     setExecuteTransactionEvents(allExecuteTransactionEvents.filter( contractEvent => contractEvent.address === currentMultiSigAddress));
     setOwnerEvents(allOwnerEvents.filter( contractEvent => contractEvent.address === currentMultiSigAddress));
     //setDepositEvents(allDepositEvents.filter( contractEvent => contractEvent.address === currentMultiSigAddress));
-
+    console.log("executetxnevents", executeTransactionEvents)
   }, [allExecuteTransactionEvents, allOwnerEvents, currentMultiSigAddress]);
-
-
-
-
-
-
-
 
 
   // EXTERNAL CONTRACT EXAMPLE:
@@ -390,7 +383,7 @@ console.log("Injected", injectedProvider);
           </Select>
         </div>
       </div>
-      <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
+      <Menu disabled={!userHasMultiSigs} style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">Multisig</Link>
         </Menu.Item>
@@ -417,6 +410,13 @@ console.log("Injected", injectedProvider);
       <Switch>
         <Route exact path="/">
           {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
+          {!userHasMultiSigs ?
+            <Row style={{ marginTop: 40 }}>
+              <Col span={12} offset={6}>
+                <Alert message={<>✨ <Button onClick={() => setIsCreateModalVisible(true)} type="link" style={{ padding: 0 }}>Create</Button> or select your Multi-Sig ✨</>} type="info" />
+              </Col>
+            </Row>
+          :
           <Home
             readContracts={readContracts}
             executeTransactionEvents={executeTransactionEvents}
@@ -425,7 +425,11 @@ console.log("Injected", injectedProvider);
             mainnetProvider={mainnetProvider}
             price={price}
             blockExplorer={blockExplorer}
+            contractAddress={currentMultiSigAddress}
+            signaturesRequired={signaturesRequired}
+            ownerEvents={ownerEvents}
           />
+        }
         </Route>
         <Route exact path="/debug">
           {/*

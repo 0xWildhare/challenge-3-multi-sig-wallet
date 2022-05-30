@@ -1,7 +1,7 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { Select, Button, List, Input, Spin } from "antd";
-import { Address, AddressInput, Balance, Blockie } from "../components";
+import { Address, AddressInput, Balance, Blockie, Signers } from "../components";
 import { useLocalStorage } from "../hooks";
 
 const { Option } = Select;
@@ -21,28 +21,12 @@ console.log("ownerArgs:", ownerEvents)
 
   return (
     <div>
-      <h2 style={{marginTop:32}}>Signatures Required: {signaturesRequired?signaturesRequired.toNumber():<Spin></Spin>}</h2>
-      <List
-        style={{maxWidth:400,margin:"auto",marginTop:32}}
-        bordered
-        dataSource={ownerEvents}
-        renderItem={(item) => {
-          return (
-            <List.Item key={"owner_"+item.transactionHash}>
-            <Address
-              address={item.args[0]}
-              ensProvider={mainnetProvider}
-              blockExplorer={blockExplorer}
-              fontSize={32}
-            />
-            <div style={{padding:16}}>
-              {item.args[1]?"👍":"👎"}
-            </div>
-            </List.Item>
-          )
-        }}
-      />
-
+    <Signers
+          ownerEvents={ownerEvents}
+          signaturesRequired={signaturesRequired}
+          mainnetProvider={mainnetProvider}
+          blockExplorer={blockExplorer}
+        />
       <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:64}}>
         <div style={{margin:8,padding:8}}>
           <Select value={methodName} style={{ width: "100%" }} onChange={ setMethodName }>

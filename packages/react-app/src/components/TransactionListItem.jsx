@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, List } from "antd";
 import { Address, Balance, Blockie, TransactionDetailsModal } from "../components";
 import { EllipsisOutlined } from "@ant-design/icons";
@@ -7,7 +7,16 @@ import ERC20 from "../contracts/ERC20.json";
 const { ethers } = require("ethers");
 //@TODO does not need to show value (or "to" but maybe thats ok) when adding or removing signers (i.e. value is 0)
 
-const TransactionListItem = function ({item, mainnetProvider, blockExplorer, price, readContracts, contractName, children, localProvider}) {
+const TransactionListItem = function ({
+  item,
+  mainnetProvider,
+  blockExplorer,
+  price,
+  readContracts,
+  contractName,
+  children,
+  localProvider
+}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [txnInfo, setTxnInfo] = useState(null);
   const [decimals, setDecimals] = useState(18);
