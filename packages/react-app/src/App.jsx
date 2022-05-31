@@ -221,13 +221,6 @@ console.log("app tx: ", tx)
     setNonce(nonceContract);
   }, [signaturesRequiredContract, nonceContract]);
 
-  //📟 Listen for broadcast events
-  const allExecuteTransactionEvents = useEventListener(currentMultiSigAddress ? readContracts : null, contractNameForEvent, "ExecuteTransaction", localProvider, 1);
-  if(DEBUG) console.log("📟 executeTransactionEvents:", allExecuteTransactionEvents);
-
-  const allOwnerEvents = useEventListener(currentMultiSigAddress ? readContracts : null, contractNameForEvent, "Owner", localProvider, 1);
-  if(DEBUG) console.log("📟 ownerEvents:", allOwnerEvents);
-
   useEffect(() => {
     async function getContractValues() {
       const signaturesRequired = await readContracts.MultiSig.signaturesRequired();
@@ -240,10 +233,18 @@ console.log("app tx: ", tx)
       readContracts.MultiSig = new ethers.Contract(currentMultiSigAddress, multiSigABI, localProvider);
       writeContracts.MultiSig = new ethers.Contract(currentMultiSigAddress, multiSigABI, userSigner);
       //console.log("readContracts", readContracts);
-      setContractNameForEvent("multiSig");
+      setContractNameForEvent("MultiSig");
       getContractValues();
     }
   }, [currentMultiSigAddress, readContracts, writeContracts]);
+
+
+    //📟 Listen for broadcast events
+    const allExecuteTransactionEvents = useEventListener(currentMultiSigAddress ? readContracts : null, contractNameForEvent, "ExecuteTransaction", localProvider, 1);
+    if(DEBUG) console.log("📟 executeTransactionEvents:", allExecuteTransactionEvents);
+
+    const allOwnerEvents = useEventListener(currentMultiSigAddress ? readContracts : null, contractNameForEvent, "Owner", localProvider, 1);
+    if(DEBUG) console.log("📟 ownerEvents:", allOwnerEvents);
 
   useEffect(() => {
     setExecuteTransactionEvents(allExecuteTransactionEvents.filter( contractEvent => contractEvent.address === currentMultiSigAddress));

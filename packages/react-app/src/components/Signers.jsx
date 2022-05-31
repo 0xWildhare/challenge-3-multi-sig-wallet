@@ -24,7 +24,6 @@ export default function Signers({
 
   return (
     <div>
-      <h2 style={{marginTop:32}}>Signatures Required: {signaturesRequired ? signaturesRequired.toNumber() :<Spin></Spin>}</h2>
       <List
         header={<h2>Owners</h2>}
         style={{maxWidth:400, margin:"auto", marginTop:32}}

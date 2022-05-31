@@ -34,18 +34,18 @@ export default function Transactions({
   if(readContracts && readContracts[contractName] && localProvider && localProvider._network && localProvider._network.chainId){
     txs = gun.get(contractAddress+"_"+(localProvider && localProvider._network && localProvider._network.chainId));
     txs.map().once(async (transaction) => {
-      totalTransactions.push(transaction);
+      if(transaction) totalTransactions.push(transaction);
     })
     console.log("gundb txs",totalTransactions)
   }
-  
+
   usePoller(() => {
     const getTransactions = async () => {
       if (true) console.log("🛰 Requesting Transaction List");
       const newTransactions = [];
-      
+
       for (const i in totalTransactions) {
-        // console.log("look through signatures of ",totalTransactions[i])
+        console.log("gundb txs ind ",totalTransactions[i]);
         const thisNonce = ethers.BigNumber.from(totalTransactions[i].nonce);
         if (thisNonce && nonce && thisNonce.gte(nonce)) {
           const validSignatures = [];
@@ -163,7 +163,7 @@ export default function Transactions({
                     }
                     const newSigTx = gun.get(newItem.hash+"newSig").put(newItem)
                     txs.set(newSigTx)
-                    
+
                   }
                 }}
                 type="secondary"
@@ -173,7 +173,7 @@ export default function Transactions({
               <Button
 
                 key={item.hash}
-                
+
                 onClick={async () => {
                   const newHash = await readContracts[contractName].getTransactionHash(
                     item.nonce,
