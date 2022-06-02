@@ -20,6 +20,7 @@ contract MultiSig {
     event ExecuteTransaction(address indexed owner, address payable to, uint256 value, bytes data, uint256 nonce, bytes32 hash, bytes result);
     event Owner(address indexed owner, bool added);
     mapping(address => bool) public isOwner;
+    mapping(address => bool) public isMessageSigner;
     uint public signaturesRequired;
     uint public nonce;
     uint public chainId;
@@ -105,30 +106,17 @@ contract MultiSig {
 
     //EIP1271
     function isValidSignature(
-    bytes32 _hash,
-    bytes calldata _signature
-  ) external override view returns (bytes4) {
-    // Validate signatures
-
-    uint256 validSignatures;
-    address duplicateGuard;
-    for (uint i = 0; i < signatures.length; i++) {
-        address recovered = recover(_hash, signatures[i]);
-        require(recovered > duplicateGuard, "executeTransaction: duplicate or unordered signatures");
-        duplicateGuard = recovered;
-        if(isOwner[recovered]){
-          validSignatures++;
-        }
+      bytes32 _hash,
+      bytes calldata _signature
+    ) external view returns (bytes4) {
+      // Validate signatures
+      address _signer = recover(_hash, _signature);
+      if (isMessageSigner[_signer]) {
+        return 0x1626ba7e;
+      } else {
+        return 0xffffffff;
+      }
     }
-
-    require(validSignatures>=signaturesRequired, "executeTransaction: not enough valid signatures");
-
-    if (//somethine here not sure what... recoverSigner(_hash, _signature) == owner) {
-      return 0x1626ba7e;
-    } else {
-      return 0xffffffff;
-    }
-  }
 
 
 
