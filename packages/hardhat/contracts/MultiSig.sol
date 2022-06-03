@@ -108,5 +108,18 @@ contract MultiSig {
         emit Deposit(msg.sender, msg.value, address(this).balance);
     }
 
+    //eip1271
 
+    function isValidSignature(
+      bytes32 _hash,
+      bytes calldata _signature
+    ) external view returns (bytes4) {
+      // Validate signatures
+      address _signer = recover(_hash, _signature);
+      if (isOwner[_signer]) {
+        return 0x1626ba7e;
+      } else {
+        return 0xffffffff;
+      }
+    }
 }

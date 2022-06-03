@@ -280,7 +280,7 @@ console.log("gas price tx: ", gasPrice)
         throw error;
       }
 
-      console.log("REQUEST PERMISSION TO:",payload,payload.params[0])
+      console.log("REQUEST PERMISSION TO:",payload,payload.params[1])
 
       //setWalletModalData({payload:payload,connector: connector})
       if (payload.method === 'eth_sendTransaction') {
