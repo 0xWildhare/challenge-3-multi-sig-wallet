@@ -349,7 +349,7 @@ function App(props) {
                 console.error("Coudn't create transaction which can be speed up", error);
                 result = await userProvider.send(payload.method, payload.params)
               }
-            } else if (payload.method === 'eth_signTypedData_v4') {
+            } else if (payload.method === 'eth_signTypedData_v6') {
               try {
                 let signer = userProvider.getSigner();
 
